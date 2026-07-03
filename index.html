@@ -101,6 +101,101 @@
     margin-bottom: 12px;
   }
 
+  .quick-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .quick-btn {
+    width: auto;
+    flex: 1 1 calc(33.333% - 6px);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--blue);
+    background: var(--card-soft);
+    border: 1px solid var(--line);
+    padding: 13px 6px;
+    border-radius: 12px;
+  }
+
+  .quick-btn:active { opacity: 0.7; transform: scale(0.97); }
+
+  .jitter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .jitter-header label { margin-bottom: 0; }
+
+  .jitter-desc {
+    font-size: 11.5px;
+    color: var(--sub-dim);
+    line-height: 1.6;
+    margin: 0 0 12px;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+
+  .switch input { opacity: 0; width: 0; height: 0; }
+
+  .switch .slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    background: var(--card-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    transition: 0.2s;
+  }
+
+  .switch .slider::before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+
+  .switch input:checked + .slider { background: var(--blue); border-color: var(--blue); }
+  .switch input:checked + .slider::before { transform: translateX(20px); }
+
+  .jitter-range-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--sub);
+  }
+
+  .jitter-range-row input[type="number"] {
+    width: 64px;
+    text-align: center;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--card-soft);
+    color: var(--ink);
+    outline: none;
+  }
+
+  .jitter-range-row input[type="number"]:focus { border-color: var(--blue); }
+
   .time-row { display: flex; align-items: center; gap: 8px; }
 
   .time-row select {
@@ -262,13 +357,18 @@
 
   #statusCard { text-align: center; }
 
-  .meta-row {
-    font-size: 12.5px;
-    color: var(--sub);
+  .meta-block {
     margin-bottom: 26px;
     padding-bottom: 18px;
     border-bottom: 1px solid var(--line);
   }
+
+  .meta-row {
+    font-size: 12.5px;
+    color: var(--sub);
+  }
+
+  .meta-row + .meta-row { margin-top: 8px; }
 
   .meta-row .value { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 
@@ -404,6 +504,34 @@
         </div>
       </div>
 
+      <div class="field">
+        <label>あと○秒で開始</label>
+        <div class="quick-row">
+          <button class="quick-btn" type="button" data-seconds="10">あと10秒</button>
+          <button class="quick-btn" type="button" data-seconds="20">あと20秒</button>
+          <button class="quick-btn" type="button" data-seconds="30">あと30秒</button>
+          <button class="quick-btn" type="button" data-seconds="45">あと45秒</button>
+          <button class="quick-btn" type="button" data-seconds="60">あと1分</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="jitter-header">
+          <label>自然ずらしモード</label>
+          <label class="switch">
+            <input type="checkbox" id="jitterToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <p class="jitter-desc">設定時刻の前後にランダムでずらして通知します。不自然な"ジャストタイミング"を避けたい時に。</p>
+        <div class="jitter-range-row hidden" id="jitterRangeRow">
+          <span>ずらし幅</span>
+          <span>±</span>
+          <input type="number" id="jitterRangeInput" min="1" max="120" value="15" />
+          <span>秒</span>
+        </div>
+      </div>
+
       <button class="primary-btn" id="startBtn">アラームをセット</button>
 
       <div class="favorites-block">
@@ -422,8 +550,13 @@
     </div>
 
     <div class="card hidden" id="statusCard">
-      <div class="meta-row">
-        設定時刻 <span class="value" id="targetDisplay">--:--:--</span>
+      <div class="meta-block">
+        <div class="meta-row">
+          設定時刻 <span class="value" id="targetDisplay">--:--:--</span>
+        </div>
+        <div class="meta-row hidden" id="jitterInfoRow">
+          自然ずらし <span class="value" id="jitterDiffDisplay">--</span>　通知時刻 <span class="value" id="actualTimeDisplay">--:--:--</span>
+        </div>
       </div>
 
       <div class="countdown-wrap">
@@ -469,6 +602,13 @@
     const focusTarget = document.getElementById("focusTarget");
     const focusCountdownEl = document.getElementById("focusCountdown");
     const exitFocusBtn = document.getElementById("exitFocusBtn");
+    const quickButtons = document.querySelectorAll(".quick-btn");
+    const jitterToggle = document.getElementById("jitterToggle");
+    const jitterRangeRow = document.getElementById("jitterRangeRow");
+    const jitterRangeInput = document.getElementById("jitterRangeInput");
+    const jitterInfoRow = document.getElementById("jitterInfoRow");
+    const jitterDiffDisplay = document.getElementById("jitterDiffDisplay");
+    const actualTimeDisplay = document.getElementById("actualTimeDisplay");
 
     function fillSelect(select, max) {
       for (let i = 0; i < max; i++) {
@@ -567,6 +707,33 @@
     });
 
     renderFavorites();
+
+    /* ---------- あと○秒クイックタイマー ---------- */
+
+    quickButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const seconds = Number(btn.dataset.seconds);
+        const target = new Date(Date.now() + seconds * 1000);
+        hourSelect.value = target.getHours();
+        minuteSelect.value = target.getMinutes();
+        secondSelect.value = target.getSeconds();
+        startStandby();
+      });
+    });
+
+    /* ---------- 自然ずらしモード ---------- */
+
+    jitterToggle.addEventListener("change", () => {
+      jitterRangeRow.classList.toggle("hidden", !jitterToggle.checked);
+    });
+
+    function formatHms(date) {
+      return (
+        String(date.getHours()).padStart(2, "0") + ":" +
+        String(date.getMinutes()).padStart(2, "0") + ":" +
+        String(date.getSeconds()).padStart(2, "0")
+      );
+    }
 
     /* ---------- 現在時刻の常時表示 ---------- */
 
@@ -682,11 +849,27 @@
       const second = Number(secondSelect.value);
 
       const now = new Date();
-      alarmDate = new Date(now.getTime());
-      alarmDate.setHours(hour, minute, second, 0);
+      let baseAlarmDate = new Date(now.getTime());
+      baseAlarmDate.setHours(hour, minute, second, 0);
 
-      if (alarmDate <= now) {
-        alarmDate.setDate(alarmDate.getDate() + 1);
+      if (baseAlarmDate <= now) {
+        baseAlarmDate.setDate(baseAlarmDate.getDate() + 1);
+      }
+
+      alarmDate = baseAlarmDate;
+      let shiftSeconds = 0;
+
+      if (jitterToggle.checked) {
+        const range = Math.max(1, Number(jitterRangeInput.value) || 15);
+        shiftSeconds = Math.round((Math.random() * 2 - 1) * range);
+        let shiftedDate = new Date(baseAlarmDate.getTime() + shiftSeconds * 1000);
+
+        if (shiftedDate <= now) {
+          shiftedDate = new Date(now.getTime() + 1000);
+          shiftSeconds = Math.round((shiftedDate - baseAlarmDate) / 1000);
+        }
+
+        alarmDate = shiftedDate;
       }
 
       lastSpokenCount = null;
@@ -699,6 +882,15 @@
 
       targetDisplay.textContent = targetStr;
       focusTarget.textContent = "目標時刻　" + targetStr;
+
+      if (jitterToggle.checked) {
+        const sign = shiftSeconds >= 0 ? "+" : "-";
+        jitterDiffDisplay.textContent = sign + Math.abs(shiftSeconds) + "秒";
+        actualTimeDisplay.textContent = formatHms(alarmDate);
+        jitterInfoRow.classList.remove("hidden");
+      } else {
+        jitterInfoRow.classList.add("hidden");
+      }
 
       setCountdownDisplay("待機中", false);
       nowOverlay.classList.remove("show");
@@ -719,6 +911,7 @@
       nowOverlay.classList.remove("show");
       exitFocusMode();
       setCountdownDisplay("--", false);
+      jitterInfoRow.classList.add("hidden");
       statusCard.classList.add("hidden");
       setupCard.classList.remove("hidden");
     }
