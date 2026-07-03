@@ -196,6 +196,22 @@
 
   .jitter-range-row input[type="number"]:focus { border-color: var(--blue); }
 
+  .select-field {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid var(--line);
+    background: var(--card-soft);
+    border-radius: 14px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 14px 16px;
+    color: var(--ink);
+  }
+
+  .select-field:focus { outline: none; border-color: var(--blue); }
+
   .time-row { display: flex; align-items: center; gap: 8px; }
 
   .time-row select {
@@ -376,8 +392,17 @@
     padding: 10px 0 8px;
     min-height: 140px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 6px;
+  }
+
+  .countdown-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--sub);
   }
 
   .countdown {
@@ -505,6 +530,28 @@
       </div>
 
       <div class="field">
+        <label>モード</label>
+        <select class="select-field" id="modeSelect">
+          <option value="normal">通常</option>
+          <option value="call">予約電話</option>
+          <option value="line">LINE送信</option>
+          <option value="threads">Threads投稿</option>
+          <option value="ticket">チケット</option>
+          <option value="live">ライブ開始</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>通知方法</label>
+        <select class="select-field" id="notifyModeSelect">
+          <option value="soundVibrate">音＋バイブ</option>
+          <option value="soundOnly">音のみ</option>
+          <option value="vibrateOnly">バイブのみ</option>
+          <option value="silent">サイレント（画面表示のみ）</option>
+        </select>
+      </div>
+
+      <div class="field">
         <label>あと○秒で開始</label>
         <div class="quick-row">
           <button class="quick-btn" type="button" data-seconds="10">あと10秒</button>
@@ -552,7 +599,7 @@
     <div class="card hidden" id="statusCard">
       <div class="meta-block">
         <div class="meta-row">
-          設定時刻 <span class="value" id="targetDisplay">--:--:--</span>
+          基準時刻 <span class="value" id="targetDisplay">--:--:--</span>
         </div>
         <div class="meta-row hidden" id="jitterInfoRow">
           自然ずらし <span class="value" id="jitterDiffDisplay">--</span>　通知時刻 <span class="value" id="actualTimeDisplay">--:--:--</span>
@@ -560,6 +607,7 @@
       </div>
 
       <div class="countdown-wrap">
+        <div class="countdown-label hidden" id="countdownLabel">開始まで</div>
         <div class="countdown" id="countdown">--</div>
       </div>
 
@@ -572,12 +620,13 @@
 
   <div class="focus-view" id="focusView">
     <div class="focus-target" id="focusTarget"></div>
+    <div class="countdown-label hidden" id="focusCountdownLabel">開始まで</div>
     <div class="countdown focus-countdown" id="focusCountdown">--</div>
     <button class="close-btn" id="exitFocusBtn">終了</button>
   </div>
 
   <div class="now-overlay" id="nowOverlay">
-    <div class="now-text">今！</div>
+    <div class="now-text" id="nowOverlayText">今！</div>
     <button class="close-btn" id="closeOverlayBtn">閉じる</button>
   </div>
 
@@ -609,6 +658,11 @@
     const jitterInfoRow = document.getElementById("jitterInfoRow");
     const jitterDiffDisplay = document.getElementById("jitterDiffDisplay");
     const actualTimeDisplay = document.getElementById("actualTimeDisplay");
+    const modeSelect = document.getElementById("modeSelect");
+    const notifyModeSelect = document.getElementById("notifyModeSelect");
+    const countdownLabel = document.getElementById("countdownLabel");
+    const focusCountdownLabel = document.getElementById("focusCountdownLabel");
+    const nowOverlayText = document.getElementById("nowOverlayText");
 
     function fillSelect(select, max) {
       for (let i = 0; i < max; i++) {
@@ -834,11 +888,31 @@
       }
     }
 
+    function shouldPlaySound() {
+      return notifyModeSelect.value === "soundVibrate" || notifyModeSelect.value === "soundOnly";
+    }
+
+    function shouldVibrate() {
+      return notifyModeSelect.value === "soundVibrate" || notifyModeSelect.value === "vibrateOnly";
+    }
+
+    function getZeroText(mode) {
+      if (mode === "call") return "発信！";
+      if (mode === "line" || mode === "threads") return "送信！";
+      if (mode === "ticket") return "購入！";
+      return "今！";
+    }
+
     function setCountdownDisplay(text, warn) {
       countdownEl.textContent = text;
       focusCountdownEl.textContent = text;
       countdownEl.classList.toggle("warn", warn);
       focusCountdownEl.classList.toggle("warn", warn);
+    }
+
+    function setCountdownLabelVisible(visible) {
+      countdownLabel.classList.toggle("hidden", !visible);
+      focusCountdownLabel.classList.toggle("hidden", !visible);
     }
 
     function startStandby() {
@@ -893,12 +967,15 @@
       }
 
       setCountdownDisplay("待機中", false);
+      setCountdownLabelVisible(false);
       nowOverlay.classList.remove("show");
 
       setupCard.classList.add("hidden");
       statusCard.classList.remove("hidden");
 
-      speak("アラームをセットしました");
+      if (shouldPlaySound()) speak("アラームをセットしました");
+
+      enterFocusMode();
 
       if (timer) clearInterval(timer);
       timer = setInterval(tick, 100);
@@ -911,6 +988,7 @@
       nowOverlay.classList.remove("show");
       exitFocusMode();
       setCountdownDisplay("--", false);
+      setCountdownLabelVisible(false);
       jitterInfoRow.classList.add("hidden");
       statusCard.classList.add("hidden");
       setupCard.classList.remove("hidden");
@@ -922,15 +1000,21 @@
 
       if (diff <= 0) {
         clearInterval(timer);
-        setCountdownDisplay("今", false);
+        const zeroText = getZeroText(modeSelect.value);
+        setCountdownDisplay(zeroText, false);
+        setCountdownLabelVisible(false);
+        nowOverlayText.textContent = zeroText;
         nowOverlay.classList.add("show");
-        startAlarmSound();
-        vibrateIfSupported([200, 100, 200, 100, 400]);
-        speak("今です");
+        if (shouldPlaySound()) {
+          startAlarmSound();
+          speak("今です");
+        }
+        if (shouldVibrate()) vibrateIfSupported(700);
         return;
       }
 
       const secondsLeft = Math.ceil(diff / 1000);
+      setCountdownLabelVisible(true);
 
       if (secondsLeft <= 10) {
         setCountdownDisplay(String(secondsLeft), true);
@@ -945,8 +1029,8 @@
 
       if (secondsLeft <= 5 && secondsLeft > 0 && lastSpokenCount !== secondsLeft) {
         lastSpokenCount = secondsLeft;
-        speak(String(secondsLeft));
-        vibrateIfSupported(40);
+        if (shouldPlaySound()) speak(String(secondsLeft));
+        if (shouldVibrate() && secondsLeft <= 3) vibrateIfSupported(80);
       }
     }
 
