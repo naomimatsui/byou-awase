@@ -82,55 +82,12 @@
 
   .clock-card { text-align: center; padding: 26px 26px 22px; }
 
-  .sync-line {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 12px;
-    color: var(--sub-dim);
-    margin-bottom: 14px;
-  }
-
-  .sync-line .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--sub-dim);
-    flex-shrink: 0;
-  }
-
-  .sync-line.synced { color: var(--blue); }
-  .sync-line.synced .dot { background: var(--blue); }
-
   .now-clock {
     font-variant-numeric: tabular-nums;
     font-size: 46px;
     font-weight: 700;
     letter-spacing: 0.01em;
     color: var(--ink);
-  }
-
-  .precision-row {
-    margin-top: 14px;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--sub);
-  }
-
-  .precision-row .value { color: var(--blue); }
-
-  .resync-btn {
-    margin-top: 16px;
-    border: none;
-    background: none;
-    color: var(--sub-dim);
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 8px;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    width: auto;
   }
 
   .field { margin-bottom: 28px; }
@@ -425,22 +382,14 @@
 <body>
   <div class="app">
     <header>
-      <div class="eyebrow">TIME-SYNCED ALARM</div>
+      <div class="eyebrow">SECOND-PRECISE ALARM</div>
       <h1>秒合わせ</h1>
       <p class="tagline">その瞬間を、逃さない。</p>
       <p class="usecase">予約開始・LINE投稿・チケット発売・ライブ配信など、タイミングを合わせたい瞬間に。</p>
     </header>
 
     <div class="card clock-card">
-      <div class="sync-line" id="syncLine">
-        <span class="dot" id="syncDot"></span>
-        <span id="syncText">時刻を同期中…</span>
-      </div>
       <div class="now-clock" id="nowClock">--:--:--</div>
-      <div class="precision-row hidden" id="precisionRow">
-        精度：<span class="value" id="precisionValue">--</span>
-      </div>
-      <button class="resync-btn" id="resyncBtn">再同期</button>
     </div>
 
     <div class="card" id="setupCard">
@@ -512,12 +461,6 @@
     const nowOverlay = document.getElementById("nowOverlay");
     const closeOverlayBtn = document.getElementById("closeOverlayBtn");
     const nowClockEl = document.getElementById("nowClock");
-    const syncLine = document.getElementById("syncLine");
-    const syncDot = document.getElementById("syncDot");
-    const syncText = document.getElementById("syncText");
-    const resyncBtn = document.getElementById("resyncBtn");
-    const precisionRow = document.getElementById("precisionRow");
-    const precisionValue = document.getElementById("precisionValue");
     const favLabelInput = document.getElementById("favLabelInput");
     const saveFavBtn = document.getElementById("saveFavBtn");
     const favoritesListEl = document.getElementById("favoritesList");
@@ -625,122 +568,10 @@
 
     renderFavorites();
 
-    /* ---------- インターネット時刻との同期 ---------- */
-
-    let timeOffsetMs = 0;
-
-    function nowSynced() {
-      return new Date(Date.now() + timeOffsetMs);
-    }
-
-    function formatDiff(seconds) {
-      const sign = seconds >= 0 ? "+" : "-";
-      return sign + Math.abs(seconds).toFixed(2) + "秒";
-    }
-
-    function precisionLabel(absSeconds) {
-      if (absSeconds <= 0.05) return "Excellent";
-      if (absSeconds <= 0.10) return "Good";
-      if (absSeconds <= 0.30) return "Fair";
-      return "Check";
-    }
-
-    const SYNC_SAMPLE_COUNT = 3;
-    const HIGH_LATENCY_THRESHOLD_MS = 300;
-
-    async function fetchTimeSample(baseUrl) {
-      const cacheBustedUrl =
-        baseUrl + (baseUrl.includes("?") ? "&" : "?") + "_=" + Date.now() + Math.random();
-
-      const localBefore = Date.now();
-      const res = await fetch(cacheBustedUrl, { cache: "no-store" });
-      const localAfter = Date.now();
-      if (!res.ok) return null;
-
-      const data = await res.json();
-      const roundTrip = localAfter - localBefore;
-
-      let serverMs;
-      if (data.utc_datetime) {
-        serverMs = new Date(data.utc_datetime).getTime();
-      } else if (data.dateTime) {
-        serverMs = new Date(data.dateTime + "Z").getTime();
-      } else {
-        return null;
-      }
-
-      if (!Number.isFinite(serverMs)) return null;
-
-      // Cristian's algorithm: assume the server timestamp landed at the
-      // midpoint of the round trip, so half the round trip is our margin
-      // of error. Communication delay itself must never be reported as
-      // if it were the clock difference.
-      const estimatedServerNow = serverMs + roundTrip / 2;
-      const offsetMs = estimatedServerNow - localAfter;
-      return { offsetMs, roundTrip };
-    }
-
-    async function syncTime() {
-      syncLine.classList.remove("synced");
-      syncText.textContent = "時刻を同期中…";
-      precisionRow.classList.add("hidden");
-
-      const endpoints = [
-        "https://worldtimeapi.org/api/ip",
-        "https://timeapi.io/api/Time/current/zone?timeZone=UTC"
-      ];
-
-      for (const url of endpoints) {
-        const samples = [];
-
-        for (let i = 0; i < SYNC_SAMPLE_COUNT; i++) {
-          try {
-            const sample = await fetchTimeSample(url);
-            if (sample) samples.push(sample);
-          } catch (err) {
-            // try the next sample / endpoint
-          }
-        }
-
-        if (samples.length === 0) continue;
-
-        // Take the sample with the smallest round trip: it carries the
-        // least queueing/jitter error, so it's the closest to the truth.
-        samples.sort((a, b) => a.roundTrip - b.roundTrip);
-        const best = samples[0];
-
-        if (best.roundTrip > HIGH_LATENCY_THRESHOLD_MS) {
-          timeOffsetMs = best.offsetMs;
-          syncLine.classList.remove("synced");
-          syncText.textContent = "同期精度が低いため再同期してください";
-          precisionRow.classList.add("hidden");
-          return;
-        }
-
-        timeOffsetMs = best.offsetMs;
-        const diffSeconds = timeOffsetMs / 1000;
-        const absSeconds = Math.abs(diffSeconds);
-
-        syncLine.classList.add("synced");
-        syncText.textContent = "NTPとの差（参考値）　" + formatDiff(diffSeconds);
-        precisionValue.textContent = precisionLabel(absSeconds);
-        precisionRow.classList.remove("hidden");
-        return;
-      }
-
-      timeOffsetMs = 0;
-      syncLine.classList.remove("synced");
-      syncText.textContent = "端末時刻を使用中";
-      precisionRow.classList.add("hidden");
-    }
-
-    resyncBtn.addEventListener("click", syncTime);
-    syncTime();
-
     /* ---------- 現在時刻の常時表示 ---------- */
 
     function renderClock() {
-      const now = nowSynced();
+      const now = new Date();
       nowClockEl.textContent =
         String(now.getHours()).padStart(2, "0") + ":" +
         String(now.getMinutes()).padStart(2, "0") + ":" +
@@ -850,7 +681,7 @@
       const minute = Number(minuteSelect.value);
       const second = Number(secondSelect.value);
 
-      const now = nowSynced();
+      const now = new Date();
       alarmDate = new Date(now.getTime());
       alarmDate.setHours(hour, minute, second, 0);
 
@@ -893,7 +724,7 @@
     }
 
     function tick() {
-      const now = nowSynced();
+      const now = new Date();
       const diff = alarmDate - now;
 
       if (diff <= 0) {
