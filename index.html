@@ -109,26 +109,26 @@
 
   .quick-btn {
     width: auto;
-    flex: 1 1 calc(33.333% - 6px);
+    flex: 1 1 calc(25% - 6px);
     font-size: 13.5px;
     font-weight: 600;
     color: var(--blue);
     background: var(--card-soft);
     border: 1px solid var(--line);
-    padding: 13px 6px;
+    padding: 13px 4px;
     border-radius: 12px;
   }
 
   .quick-btn:active { opacity: 0.7; transform: scale(0.97); }
 
-  .jitter-header {
+  .toggle-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 8px;
   }
 
-  .jitter-header label { margin-bottom: 0; }
+  .toggle-row label { margin-bottom: 0; }
 
   .jitter-desc {
     font-size: 11.5px;
@@ -136,6 +136,8 @@
     line-height: 1.6;
     margin: 0 0 12px;
   }
+
+  .jitter-range-row { margin-top: 12px; }
 
   .switch {
     position: relative;
@@ -552,8 +554,22 @@
       </div>
 
       <div class="field">
+        <div class="toggle-row">
+          <label>1秒前に予告する</label>
+          <label class="switch">
+            <input type="checkbox" id="preNotifyToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <p class="jitter-desc">予約電話・チケット・LINE送信・Threads投稿などで、1秒前に短い音とアナウンスでお知らせします。</p>
+      </div>
+
+      <div class="field">
         <label>あと○秒で開始</label>
         <div class="quick-row">
+          <button class="quick-btn" type="button" data-seconds="1">あと1秒</button>
+          <button class="quick-btn" type="button" data-seconds="3">あと3秒</button>
+          <button class="quick-btn" type="button" data-seconds="5">あと5秒</button>
           <button class="quick-btn" type="button" data-seconds="10">あと10秒</button>
           <button class="quick-btn" type="button" data-seconds="20">あと20秒</button>
           <button class="quick-btn" type="button" data-seconds="30">あと30秒</button>
@@ -563,14 +579,16 @@
       </div>
 
       <div class="field">
-        <div class="jitter-header">
-          <label>自然ずらしモード</label>
-          <label class="switch">
-            <input type="checkbox" id="jitterToggle" />
-            <span class="slider"></span>
-          </label>
-        </div>
-        <p class="jitter-desc">設定時刻の前後にランダムでずらして通知します。不自然な"ジャストタイミング"を避けたい時に。</p>
+        <label>自然送信アシスト</label>
+        <p class="jitter-desc">毎回ぴったり同じ時刻にならないように、数秒だけ自然にずらします。</p>
+        <select class="select-field" id="jitterPresetSelect">
+          <option value="just">ジャスト</option>
+          <option value="3">人間っぽく ±3秒</option>
+          <option value="5">人間っぽく ±5秒</option>
+          <option value="10">人間っぽく ±10秒</option>
+          <option value="15">人間っぽく ±15秒</option>
+          <option value="custom">カスタム</option>
+        </select>
         <div class="jitter-range-row hidden" id="jitterRangeRow">
           <span>ずらし幅</span>
           <span>±</span>
@@ -652,7 +670,7 @@
     const focusCountdownEl = document.getElementById("focusCountdown");
     const exitFocusBtn = document.getElementById("exitFocusBtn");
     const quickButtons = document.querySelectorAll(".quick-btn");
-    const jitterToggle = document.getElementById("jitterToggle");
+    const jitterPresetSelect = document.getElementById("jitterPresetSelect");
     const jitterRangeRow = document.getElementById("jitterRangeRow");
     const jitterRangeInput = document.getElementById("jitterRangeInput");
     const jitterInfoRow = document.getElementById("jitterInfoRow");
@@ -660,6 +678,7 @@
     const actualTimeDisplay = document.getElementById("actualTimeDisplay");
     const modeSelect = document.getElementById("modeSelect");
     const notifyModeSelect = document.getElementById("notifyModeSelect");
+    const preNotifyToggle = document.getElementById("preNotifyToggle");
     const countdownLabel = document.getElementById("countdownLabel");
     const focusCountdownLabel = document.getElementById("focusCountdownLabel");
     const nowOverlayText = document.getElementById("nowOverlayText");
@@ -775,11 +794,18 @@
       });
     });
 
-    /* ---------- 自然ずらしモード ---------- */
+    /* ---------- 自然送信アシスト ---------- */
 
-    jitterToggle.addEventListener("change", () => {
-      jitterRangeRow.classList.toggle("hidden", !jitterToggle.checked);
+    jitterPresetSelect.addEventListener("change", () => {
+      jitterRangeRow.classList.toggle("hidden", jitterPresetSelect.value !== "custom");
     });
+
+    function getJitterRangeSeconds() {
+      const preset = jitterPresetSelect.value;
+      if (preset === "just") return 0;
+      if (preset === "custom") return Math.max(1, Number(jitterRangeInput.value) || 15);
+      return Number(preset);
+    }
 
     function formatHms(date) {
       return (
@@ -898,9 +924,23 @@
 
     function getZeroText(mode) {
       if (mode === "call") return "発信！";
-      if (mode === "line" || mode === "threads") return "送信！";
-      if (mode === "ticket") return "購入！";
+      if (mode === "line") return "送信！";
+      if (mode === "threads") return "投稿！";
+      if (mode === "ticket") return "押す！";
+      if (mode === "live") return "開始！";
       return "今！";
+    }
+
+    function playPreNotifyBeep() {
+      unlockAudio();
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.frequency.value = 1400;
+      gain.gain.value = 0.3;
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.12);
     }
 
     function setCountdownDisplay(text, warn) {
@@ -932,10 +972,10 @@
 
       alarmDate = baseAlarmDate;
       let shiftSeconds = 0;
+      const jitterRange = getJitterRangeSeconds();
 
-      if (jitterToggle.checked) {
-        const range = Math.max(1, Number(jitterRangeInput.value) || 15);
-        shiftSeconds = Math.round((Math.random() * 2 - 1) * range);
+      if (jitterRange > 0) {
+        shiftSeconds = Math.round((Math.random() * 2 - 1) * jitterRange);
         let shiftedDate = new Date(baseAlarmDate.getTime() + shiftSeconds * 1000);
 
         if (shiftedDate <= now) {
@@ -957,7 +997,7 @@
       targetDisplay.textContent = targetStr;
       focusTarget.textContent = "目標時刻　" + targetStr;
 
-      if (jitterToggle.checked) {
+      if (jitterRange > 0) {
         const sign = shiftSeconds >= 0 ? "+" : "-";
         jitterDiffDisplay.textContent = sign + Math.abs(shiftSeconds) + "秒";
         actualTimeDisplay.textContent = formatHms(alarmDate);
@@ -1029,7 +1069,16 @@
 
       if (secondsLeft <= 5 && secondsLeft > 0 && lastSpokenCount !== secondsLeft) {
         lastSpokenCount = secondsLeft;
-        if (shouldPlaySound()) speak(String(secondsLeft));
+
+        if (secondsLeft === 1 && preNotifyToggle.checked) {
+          if (shouldPlaySound()) {
+            playPreNotifyBeep();
+            speak("1秒前");
+          }
+        } else if (shouldPlaySound()) {
+          speak(String(secondsLeft));
+        }
+
         if (shouldVibrate() && secondsLeft <= 3) vibrateIfSupported(80);
       }
     }
