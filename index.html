@@ -533,10 +533,118 @@
     border-radius: 999px;
     width: auto;
   }
+
+  /* 起動スプラッシュ画面 */
+  .splash {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: #000000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    transition: opacity 0.6s ease;
+  }
+
+  .splash.hide {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .splash-title {
+    font-size: clamp(36px, 11vw, 56px);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.01em;
+    text-shadow: 0 0 44px rgba(10, 132, 255, 0.85);
+  }
+
+  .splash-tagline {
+    font-size: 15px;
+    color: var(--sub);
+    letter-spacing: 0.02em;
+  }
+
+  /* 設定ボタン・設定画面 */
+  .settings-fab {
+    position: fixed;
+    right: 20px;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+    z-index: 400;
+  }
+
+  .settings-fab:active { transform: scale(0.95); }
+
+  .settings-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    background: rgba(0, 0, 0, 0.6);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .settings-overlay.show { display: flex; }
+
+  .settings-panel {
+    width: 100%;
+    max-width: 380px;
+    max-height: 82vh;
+    overflow-y: auto;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 26px 22px;
+    box-shadow: var(--shadow);
+    text-align: left;
+  }
+
+  .settings-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+
+  .settings-header h2 {
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .settings-close {
+    width: auto;
+    background: transparent;
+    border: none;
+    color: var(--sub);
+    font-size: 20px;
+    padding: 4px 8px;
+  }
 </style>
 </head>
 
 <body>
+  <div class="splash" id="splashScreen">
+    <div class="splash-title">秒合わせ</div>
+    <div class="splash-tagline">その一秒を逃さない。</div>
+  </div>
+
   <div class="app">
     <header>
       <div class="eyebrow">SECOND-PRECISE ALARM</div>
@@ -704,6 +812,41 @@
     <button class="close-btn" id="closeOverlayBtn">閉じる</button>
   </div>
 
+  <button class="settings-fab" id="settingsFab" type="button" aria-label="設定">⚙️</button>
+
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel">
+      <div class="settings-header">
+        <h2>設定</h2>
+        <button class="settings-close" id="settingsCloseBtn" type="button">✕</button>
+      </div>
+
+      <div class="field">
+        <label>通知音</label>
+        <select class="select-field" id="notifySoundSelect">
+          <option value="beep">ピッ</option>
+          <option value="pon">ポン</option>
+          <option value="click">カチッ</option>
+          <option value="bell">電話ベル</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>⌚ Apple Watch対応：準備中</label>
+        <p class="jitter-desc">腕だけ見て、3・2・1・今！が分かる機能を予定しています。</p>
+      </div>
+
+      <div class="field">
+        <label>アプリ情報</label>
+        <p class="jitter-desc">
+          アプリ名：秒合わせ<br />
+          English name：Second Sync<br />
+          キャッチコピー：その一秒を逃さない。
+        </p>
+      </div>
+    </div>
+  </div>
+
   <script>
     const hourSelect = document.getElementById("hourSelect");
     const minuteSelect = document.getElementById("minuteSelect");
@@ -739,6 +882,11 @@
     const focusCountdownLabel = document.getElementById("focusCountdownLabel");
     const nowOverlayText = document.getElementById("nowOverlayText");
     const presetButtons = document.querySelectorAll(".preset-btn");
+    const splashScreen = document.getElementById("splashScreen");
+    const settingsFab = document.getElementById("settingsFab");
+    const settingsOverlay = document.getElementById("settingsOverlay");
+    const settingsCloseBtn = document.getElementById("settingsCloseBtn");
+    const notifySoundSelect = document.getElementById("notifySoundSelect");
 
     function fillSelect(select, max) {
       for (let i = 0; i < max; i++) {
@@ -760,6 +908,36 @@
       secondSelect.value = 0;
     })();
 
+    /* ---------- 起動スプラッシュ ---------- */
+
+    setTimeout(() => {
+      splashScreen.classList.add("hide");
+    }, 2000);
+
+    splashScreen.addEventListener("transitionend", () => {
+      if (splashScreen.classList.contains("hide")) {
+        splashScreen.style.display = "none";
+      }
+    });
+
+    /* ---------- 設定画面 ---------- */
+
+    settingsFab.addEventListener("click", () => {
+      settingsOverlay.classList.add("show");
+    });
+
+    settingsCloseBtn.addEventListener("click", () => {
+      settingsOverlay.classList.remove("show");
+    });
+
+    settingsOverlay.addEventListener("click", (e) => {
+      if (e.target === settingsOverlay) {
+        settingsOverlay.classList.remove("show");
+      }
+    });
+
+    notifySoundSelect.addEventListener("change", saveSettings);
+
     /* ---------- 設定の保存（localStorage） ---------- */
 
     const SETTINGS_KEY = "byouAwaseSettings";
@@ -770,7 +948,8 @@
         notify: notifyModeSelect.value,
         preNotify: preNotifyToggle.checked,
         jitterPreset: jitterPresetSelect.value,
-        jitterRange: Number(jitterRangeInput.value) || 15
+        jitterRange: Number(jitterRangeInput.value) || 15,
+        notifySound: notifySoundSelect.value
       }));
     }
 
@@ -784,6 +963,7 @@
         if (typeof s.preNotify === "boolean") preNotifyToggle.checked = s.preNotify;
         if (s.jitterPreset) jitterPresetSelect.value = s.jitterPreset;
         if (s.jitterRange) jitterRangeInput.value = s.jitterRange;
+        if (s.notifySound) notifySoundSelect.value = s.notifySound;
         jitterRangeRow.classList.toggle("hidden", jitterPresetSelect.value !== "custom");
       } catch (err) {
         // keep defaults
@@ -1007,24 +1187,40 @@
       speechSynthesis.speak(voice);
     }
 
-    function beepBurst(times) {
+    function playTone(freq, duration, gainVal, delay) {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.frequency.value = freq;
+      gain.gain.value = gainVal;
+      const start = audioContext.currentTime + delay;
+      oscillator.start(start);
+      oscillator.stop(start + duration);
+    }
+
+    function playNotifySound(style) {
       unlockAudio();
-      for (let i = 0; i < times; i++) {
-        const oscillator = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        oscillator.connect(gain);
-        gain.connect(audioContext.destination);
-        oscillator.frequency.value = 880;
-        gain.gain.value = 0.25;
-        const start = audioContext.currentTime + i * 0.3;
-        oscillator.start(start);
-        oscillator.stop(start + 0.16);
+      if (style === "pon") {
+        playTone(600, 0.35, 0.25, 0);
+      } else if (style === "click") {
+        playTone(2200, 0.03, 0.35, 0);
+      } else if (style === "bell") {
+        playTone(440, 0.15, 0.25, 0);
+        playTone(480, 0.15, 0.25, 0.18);
+        playTone(440, 0.15, 0.25, 0.36);
+        playTone(480, 0.15, 0.25, 0.54);
+      } else {
+        for (let i = 0; i < 4; i++) {
+          playTone(880, 0.16, 0.25, i * 0.3);
+        }
       }
     }
 
     function startAlarmSound() {
-      beepBurst(4);
-      alarmLoopId = setInterval(() => beepBurst(4), 1400);
+      const style = notifySoundSelect.value;
+      playNotifySound(style);
+      alarmLoopId = setInterval(() => playNotifySound(style), 1400);
     }
 
     function stopAlarmSound() {
