@@ -639,10 +639,45 @@
     }
 
     function precisionLabel(absSeconds) {
-      if (absSeconds <= 0.10) return "Excellent";
-      if (absSeconds <= 0.30) return "Good";
-      if (absSeconds <= 1.00) return "Fair";
+      if (absSeconds <= 0.05) return "Excellent";
+      if (absSeconds <= 0.10) return "Good";
+      if (absSeconds <= 0.30) return "Fair";
       return "Check";
+    }
+
+    const SYNC_SAMPLE_COUNT = 3;
+    const HIGH_LATENCY_THRESHOLD_MS = 300;
+
+    async function fetchTimeSample(baseUrl) {
+      const cacheBustedUrl =
+        baseUrl + (baseUrl.includes("?") ? "&" : "?") + "_=" + Date.now() + Math.random();
+
+      const localBefore = Date.now();
+      const res = await fetch(cacheBustedUrl, { cache: "no-store" });
+      const localAfter = Date.now();
+      if (!res.ok) return null;
+
+      const data = await res.json();
+      const roundTrip = localAfter - localBefore;
+
+      let serverMs;
+      if (data.utc_datetime) {
+        serverMs = new Date(data.utc_datetime).getTime();
+      } else if (data.dateTime) {
+        serverMs = new Date(data.dateTime + "Z").getTime();
+      } else {
+        return null;
+      }
+
+      if (!Number.isFinite(serverMs)) return null;
+
+      // Cristian's algorithm: assume the server timestamp landed at the
+      // midpoint of the round trip, so half the round trip is our margin
+      // of error. Communication delay itself must never be reported as
+      // if it were the clock difference.
+      const estimatedServerNow = serverMs + roundTrip / 2;
+      const offsetMs = estimatedServerNow - localAfter;
+      return { offsetMs, roundTrip };
     }
 
     async function syncTime() {
@@ -656,40 +691,41 @@
       ];
 
       for (const url of endpoints) {
-        try {
-          const localBefore = Date.now();
-          const res = await fetch(url, { cache: "no-store" });
-          const localAfter = Date.now();
-          if (!res.ok) continue;
+        const samples = [];
 
-          const data = await res.json();
-          const roundTrip = localAfter - localBefore;
-
-          let serverMs;
-          if (data.utc_datetime) {
-            serverMs = new Date(data.utc_datetime).getTime();
-          } else if (data.dateTime) {
-            serverMs = new Date(data.dateTime + "Z").getTime();
-          } else {
-            continue;
+        for (let i = 0; i < SYNC_SAMPLE_COUNT; i++) {
+          try {
+            const sample = await fetchTimeSample(url);
+            if (sample) samples.push(sample);
+          } catch (err) {
+            // try the next sample / endpoint
           }
-
-          if (!Number.isFinite(serverMs)) continue;
-
-          const estimatedServerNow = serverMs + roundTrip / 2;
-          timeOffsetMs = estimatedServerNow - localAfter;
-
-          const diffSeconds = timeOffsetMs / 1000;
-          const absSeconds = Math.abs(diffSeconds);
-
-          syncLine.classList.add("synced");
-          syncText.textContent = "NTPとの差　" + formatDiff(diffSeconds);
-          precisionValue.textContent = precisionLabel(absSeconds);
-          precisionRow.classList.remove("hidden");
-          return;
-        } catch (err) {
-          continue;
         }
+
+        if (samples.length === 0) continue;
+
+        // Take the sample with the smallest round trip: it carries the
+        // least queueing/jitter error, so it's the closest to the truth.
+        samples.sort((a, b) => a.roundTrip - b.roundTrip);
+        const best = samples[0];
+
+        if (best.roundTrip > HIGH_LATENCY_THRESHOLD_MS) {
+          timeOffsetMs = best.offsetMs;
+          syncLine.classList.remove("synced");
+          syncText.textContent = "同期精度が低いため再同期してください";
+          precisionRow.classList.add("hidden");
+          return;
+        }
+
+        timeOffsetMs = best.offsetMs;
+        const diffSeconds = timeOffsetMs / 1000;
+        const absSeconds = Math.abs(diffSeconds);
+
+        syncLine.classList.add("synced");
+        syncText.textContent = "NTPとの差（参考値）　" + formatDiff(diffSeconds);
+        precisionValue.textContent = precisionLabel(absSeconds);
+        precisionRow.classList.remove("hidden");
+        return;
       }
 
       timeOffsetMs = 0;
