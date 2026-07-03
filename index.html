@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<title>秒合わせ ー その瞬間を、逃さない。</title>
+<style>
+  :root {
+    --bg: #000000;
+    --bg-soft: #0c0c0e;
+    --card: #1c1c1e;
+    --card-soft: #232326;
+    --line: rgba(255, 255, 255, 0.08);
+    --ink: #f5f5f7;
+    --sub: #8e8e93;
+    --sub-dim: #636366;
+    --blue: #0a84ff;
+    --shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Hiragino Sans",
+      "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    background: radial-gradient(circle at 50% 0%, var(--bg-soft), var(--bg) 60%);
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: max(40px, env(safe-area-inset-top)) 20px max(40px, env(safe-area-inset-bottom));
+  }
+
+  .app { width: 100%; max-width: 420px; }
+
+  header { text-align: center; margin-bottom: 28px; }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    color: var(--sub-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+    color: var(--ink);
+  }
+
+  header .tagline {
+    font-size: 14.5px;
+    color: var(--sub);
+    margin: 0 0 12px;
+    letter-spacing: 0.01em;
+  }
+
+  header .usecase {
+    font-size: 12.5px;
+    color: var(--sub-dim);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 30px 26px;
+    box-shadow: var(--shadow);
+  }
+
+  .card + .card { margin-top: 18px; }
+
+  .clock-card { text-align: center; padding: 26px 26px 22px; }
+
+  .sync-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--sub-dim);
+    margin-bottom: 14px;
+  }
+
+  .sync-line .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--sub-dim);
+    flex-shrink: 0;
+  }
+
+  .sync-line.synced { color: var(--blue); }
+  .sync-line.synced .dot { background: var(--blue); }
+
+  .now-clock {
+    font-variant-numeric: tabular-nums;
+    font-size: 46px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+
+  .precision-row {
+    margin-top: 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--sub);
+  }
+
+  .precision-row .value { color: var(--blue); }
+
+  .resync-btn {
+    margin-top: 16px;
+    border: none;
+    background: none;
+    color: var(--sub-dim);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    width: auto;
+  }
+
+  .field { margin-bottom: 28px; }
+
+  .field label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--sub);
+    margin-bottom: 12px;
+  }
+
+  .time-row { display: flex; align-items: center; gap: 8px; }
+
+  .time-row select {
+    flex: 1;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid var(--line);
+    background: var(--card-soft);
+    border-radius: 14px;
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    padding: 14px 4px;
+    color: var(--ink);
+  }
+
+  .time-row select:focus { outline: none; border-color: var(--blue); }
+
+  .time-row .colon {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--sub-dim);
+    width: 8px;
+    text-align: center;
+  }
+
+  button, .btn {
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+    display: block;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .primary-btn {
+    font-size: 16.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: #fff;
+    padding: 18px;
+    border-radius: 16px;
+    background: var(--blue);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+  }
+
+  .primary-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+  .outline-btn {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--blue);
+    padding: 17px;
+    border-radius: 16px;
+    background: transparent;
+    border: 1.5px solid var(--blue);
+    margin-top: 14px;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+  }
+
+  .outline-btn:active { transform: scale(0.98); opacity: 0.8; }
+
+  .secondary-btn {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--sub);
+    background: transparent;
+    padding: 12px;
+    margin-top: 8px;
+    border: 1px solid transparent;
+  }
+
+  .secondary-btn:active { opacity: 0.6; }
+
+  .favorites-block { margin-top: 6px; margin-bottom: 28px; }
+
+  .favorite-add-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .favorite-add-row input {
+    flex: 1;
+    font-family: inherit;
+    font-size: 14px;
+    padding: 13px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--card-soft);
+    color: var(--ink);
+    outline: none;
+    min-width: 0;
+  }
+
+  .favorite-add-row input:focus { border-color: var(--blue); }
+  .favorite-add-row input::placeholder { color: var(--sub-dim); }
+
+  .favorite-add-row button {
+    width: auto;
+    flex-shrink: 0;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--blue);
+    background: var(--card-soft);
+    border: 1px solid var(--line);
+    padding: 0 18px;
+    border-radius: 12px;
+  }
+
+  .favorites-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .favorites-empty {
+    font-size: 12.5px;
+    color: var(--sub-dim);
+  }
+
+  .favorite-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card-soft);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 9px 8px 9px 14px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .favorite-delete {
+    color: var(--sub-dim);
+    font-size: 14px;
+    line-height: 1;
+    padding: 4px 6px;
+  }
+
+  .notice {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--card-soft);
+    border: 1px solid var(--line);
+  }
+
+  .notice .mark { flex-shrink: 0; font-size: 13px; font-weight: 700; color: var(--blue); }
+  .notice p { margin: 0; font-size: 12px; line-height: 1.65; color: var(--sub); }
+
+  #statusCard { text-align: center; }
+
+  .meta-row {
+    font-size: 12.5px;
+    color: var(--sub);
+    margin-bottom: 26px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .meta-row .value { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .countdown-wrap {
+    padding: 10px 0 8px;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .countdown {
+    font-variant-numeric: tabular-nums;
+    font-size: 46px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    transition: font-size 0.2s ease;
+  }
+
+  .countdown.warn {
+    font-size: 104px;
+    font-weight: 700;
+    color: var(--blue);
+    text-shadow: 0 0 34px rgba(10, 132, 255, 0.55);
+  }
+
+  .hidden { display: none !important; }
+
+  footer {
+    text-align: center;
+    margin-top: 26px;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--sub-dim);
+  }
+
+  /* 全画面（疑似全画面）モード */
+  .focus-view {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    background: #000000;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .focus-view.show { display: flex; }
+
+  .focus-target {
+    font-size: 13px;
+    color: var(--sub);
+    letter-spacing: 0.04em;
+  }
+
+  .focus-countdown {
+    font-size: clamp(60px, 22vw, 140px) !important;
+  }
+
+  .focus-view .close-btn { margin-top: 10px; }
+
+  /* 0秒到達時のフルスクリーン表示 */
+  .now-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    padding: 24px;
+    text-align: center;
+    background: #000000;
+    animation: bgflash 0.4s steps(1) infinite alternate;
+  }
+
+  .now-overlay.show { display: flex; }
+
+  @keyframes bgflash {
+    from { background-color: #000000; }
+    to { background-color: #0a3a75; }
+  }
+
+  .now-overlay .now-text {
+    font-size: clamp(70px, 24vw, 160px);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 60px rgba(10, 132, 255, 0.9);
+  }
+
+  .close-btn {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    padding: 13px 30px;
+    border-radius: 999px;
+    width: auto;
+  }
+</style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="eyebrow">TIME-SYNCED ALARM</div>
+      <h1>秒合わせ</h1>
+      <p class="tagline">その瞬間を、逃さない。</p>
+      <p class="usecase">予約開始・LINE投稿・チケット発売・ライブ配信など、タイミングを合わせたい瞬間に。</p>
+    </header>
+
+    <div class="card clock-card">
+      <div class="sync-line" id="syncLine">
+        <span class="dot" id="syncDot"></span>
+        <span id="syncText">時刻を同期中…</span>
+      </div>
+      <div class="now-clock" id="nowClock">--:--:--</div>
+      <div class="precision-row hidden" id="precisionRow">
+        精度：<span class="value" id="precisionValue">--</span>
+      </div>
+      <button class="resync-btn" id="resyncBtn">再同期</button>
+    </div>
+
+    <div class="card" id="setupCard">
+      <div class="field">
+        <label>目標時刻</label>
+        <div class="time-row">
+          <select id="hourSelect" aria-label="時"></select>
+          <span class="colon">:</span>
+          <select id="minuteSelect" aria-label="分"></select>
+          <span class="colon">:</span>
+          <select id="secondSelect" aria-label="秒"></select>
+        </div>
+      </div>
+
+      <button class="primary-btn" id="startBtn">アラームをセット</button>
+
+      <div class="favorites-block">
+        <label>お気に入り時刻</label>
+        <div class="favorite-add-row">
+          <input type="text" id="favLabelInput" placeholder="ラベル（任意）" />
+          <button id="saveFavBtn">★ 保存</button>
+        </div>
+        <div class="favorites-list" id="favoritesList"></div>
+      </div>
+
+      <div class="notice">
+        <span class="mark">ⓘ</span>
+        <p>正確に使うには、この画面を開いたままにしてください。別アプリを開いている間は、音やカウントが遅れる場合があります。</p>
+      </div>
+    </div>
+
+    <div class="card hidden" id="statusCard">
+      <div class="meta-row">
+        設定時刻 <span class="value" id="targetDisplay">--:--:--</span>
+      </div>
+
+      <div class="countdown-wrap">
+        <div class="countdown" id="countdown">--</div>
+      </div>
+
+      <button class="outline-btn" id="focusBtn">全画面モード</button>
+      <button class="secondary-btn" id="cancelBtn">設定に戻る</button>
+    </div>
+
+    <footer>BYOU AWASE</footer>
+  </div>
+
+  <div class="focus-view" id="focusView">
+    <div class="focus-target" id="focusTarget"></div>
+    <div class="countdown focus-countdown" id="focusCountdown">--</div>
+    <button class="close-btn" id="exitFocusBtn">終了</button>
+  </div>
+
+  <div class="now-overlay" id="nowOverlay">
+    <div class="now-text">今！</div>
+    <button class="close-btn" id="closeOverlayBtn">閉じる</button>
+  </div>
+
+  <script>
+    const hourSelect = document.getElementById("hourSelect");
+    const minuteSelect = document.getElementById("minuteSelect");
+    const secondSelect = document.getElementById("secondSelect");
+    const startBtn = document.getElementById("startBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+    const setupCard = document.getElementById("setupCard");
+    const statusCard = document.getElementById("statusCard");
+    const targetDisplay = document.getElementById("targetDisplay");
+    const countdownEl = document.getElementById("countdown");
+    const nowOverlay = document.getElementById("nowOverlay");
+    const closeOverlayBtn = document.getElementById("closeOverlayBtn");
+    const nowClockEl = document.getElementById("nowClock");
+    const syncLine = document.getElementById("syncLine");
+    const syncDot = document.getElementById("syncDot");
+    const syncText = document.getElementById("syncText");
+    const resyncBtn = document.getElementById("resyncBtn");
+    const precisionRow = document.getElementById("precisionRow");
+    const precisionValue = document.getElementById("precisionValue");
+    const favLabelInput = document.getElementById("favLabelInput");
+    const saveFavBtn = document.getElementById("saveFavBtn");
+    const favoritesListEl = document.getElementById("favoritesList");
+    const focusBtn = document.getElementById("focusBtn");
+    const focusView = document.getElementById("focusView");
+    const focusTarget = document.getElementById("focusTarget");
+    const focusCountdownEl = document.getElementById("focusCountdown");
+    const exitFocusBtn = document.getElementById("exitFocusBtn");
+
+    function fillSelect(select, max) {
+      for (let i = 0; i < max; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = String(i).padStart(2, "0");
+        select.appendChild(opt);
+      }
+    }
+
+    fillSelect(hourSelect, 24);
+    fillSelect(minuteSelect, 60);
+    fillSelect(secondSelect, 60);
+
+    (function setDefaultTime() {
+      const now = new Date();
+      hourSelect.value = now.getHours();
+      minuteSelect.value = now.getMinutes();
+      secondSelect.value = 0;
+    })();
+
+    /* ---------- お気に入り時刻（localStorage） ---------- */
+
+    const FAV_KEY = "byouAwaseFavorites";
+
+    function loadFavorites() {
+      try {
+        const raw = localStorage.getItem(FAV_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (err) {
+        return [];
+      }
+    }
+
+    function saveFavoritesList(list) {
+      localStorage.setItem(FAV_KEY, JSON.stringify(list));
+    }
+
+    function renderFavorites() {
+      const list = loadFavorites();
+      favoritesListEl.innerHTML = "";
+
+      if (list.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "favorites-empty";
+        empty.textContent = "保存された時刻はまだありません";
+        favoritesListEl.appendChild(empty);
+        return;
+      }
+
+      list.forEach((fav) => {
+        const chip = document.createElement("div");
+        chip.className = "favorite-chip";
+
+        const timeStr =
+          String(fav.hour).padStart(2, "0") + ":" +
+          String(fav.minute).padStart(2, "0") + ":" +
+          String(fav.second).padStart(2, "0");
+
+        const label = document.createElement("span");
+        label.textContent = fav.label ? fav.label + "　" + timeStr : timeStr;
+        chip.appendChild(label);
+
+        const del = document.createElement("span");
+        del.className = "favorite-delete";
+        del.textContent = "×";
+        del.addEventListener("click", (e) => {
+          e.stopPropagation();
+          saveFavoritesList(loadFavorites().filter((f) => f.id !== fav.id));
+          renderFavorites();
+        });
+        chip.appendChild(del);
+
+        chip.addEventListener("click", () => {
+          hourSelect.value = fav.hour;
+          minuteSelect.value = fav.minute;
+          secondSelect.value = fav.second;
+        });
+
+        favoritesListEl.appendChild(chip);
+      });
+    }
+
+    saveFavBtn.addEventListener("click", () => {
+      const list = loadFavorites();
+      list.push({
+        id: Date.now(),
+        label: favLabelInput.value.trim(),
+        hour: Number(hourSelect.value),
+        minute: Number(minuteSelect.value),
+        second: Number(secondSelect.value)
+      });
+      saveFavoritesList(list);
+      favLabelInput.value = "";
+      renderFavorites();
+    });
+
+    renderFavorites();
+
+    /* ---------- インターネット時刻との同期 ---------- */
+
+    let timeOffsetMs = 0;
+
+    function nowSynced() {
+      return new Date(Date.now() + timeOffsetMs);
+    }
+
+    function formatDiff(seconds) {
+      const sign = seconds >= 0 ? "+" : "-";
+      return sign + Math.abs(seconds).toFixed(2) + "秒";
+    }
+
+    function precisionLabel(absSeconds) {
+      if (absSeconds <= 0.10) return "Excellent";
+      if (absSeconds <= 0.30) return "Good";
+      if (absSeconds <= 1.00) return "Fair";
+      return "Check";
+    }
+
+    async function syncTime() {
+      syncLine.classList.remove("synced");
+      syncText.textContent = "時刻を同期中…";
+      precisionRow.classList.add("hidden");
+
+      const endpoints = [
+        "https://worldtimeapi.org/api/ip",
+        "https://timeapi.io/api/Time/current/zone?timeZone=UTC"
+      ];
+
+      for (const url of endpoints) {
+        try {
+          const localBefore = Date.now();
+          const res = await fetch(url, { cache: "no-store" });
+          const localAfter = Date.now();
+          if (!res.ok) continue;
+
+          const data = await res.json();
+          const roundTrip = localAfter - localBefore;
+
+          let serverMs;
+          if (data.utc_datetime) {
+            serverMs = new Date(data.utc_datetime).getTime();
+          } else if (data.dateTime) {
+            serverMs = new Date(data.dateTime + "Z").getTime();
+          } else {
+            continue;
+          }
+
+          if (!Number.isFinite(serverMs)) continue;
+
+          const estimatedServerNow = serverMs + roundTrip / 2;
+          timeOffsetMs = estimatedServerNow - localAfter;
+
+          const diffSeconds = timeOffsetMs / 1000;
+          const absSeconds = Math.abs(diffSeconds);
+
+          syncLine.classList.add("synced");
+          syncText.textContent = "NTPとの差　" + formatDiff(diffSeconds);
+          precisionValue.textContent = precisionLabel(absSeconds);
+          precisionRow.classList.remove("hidden");
+          return;
+        } catch (err) {
+          continue;
+        }
+      }
+
+      timeOffsetMs = 0;
+      syncLine.classList.remove("synced");
+      syncText.textContent = "端末時刻を使用中";
+      precisionRow.classList.add("hidden");
+    }
+
+    resyncBtn.addEventListener("click", syncTime);
+    syncTime();
+
+    /* ---------- 現在時刻の常時表示 ---------- */
+
+    function renderClock() {
+      const now = nowSynced();
+      nowClockEl.textContent =
+        String(now.getHours()).padStart(2, "0") + ":" +
+        String(now.getMinutes()).padStart(2, "0") + ":" +
+        String(now.getSeconds()).padStart(2, "0");
+    }
+
+    setInterval(renderClock, 200);
+    renderClock();
+
+    /* ---------- 全画面（疑似全画面）モード ---------- */
+
+    function enterFocusMode() {
+      focusView.classList.add("show");
+      const el = document.documentElement;
+      const request = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (request) {
+        request.call(el).catch(() => {});
+      }
+    }
+
+    function exitFocusMode() {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (exit) exit.call(document).catch(() => {});
+      }
+      focusView.classList.remove("show");
+    }
+
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) {
+        focusView.classList.remove("show");
+      }
+    });
+
+    focusBtn.addEventListener("click", enterFocusMode);
+    exitFocusBtn.addEventListener("click", exitFocusMode);
+
+    /* ---------- アラーム本体 ---------- */
+
+    let alarmDate = null;
+    let timer = null;
+    let lastSpokenCount = null;
+    let alarmLoopId = null;
+    let audioContext = null;
+
+    function unlockAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
+    }
+
+    function speak(text) {
+      if (!("speechSynthesis" in window)) return;
+      const voice = new SpeechSynthesisUtterance(text);
+      voice.lang = "ja-JP";
+      voice.rate = 1.0;
+      speechSynthesis.speak(voice);
+    }
+
+    function beepBurst(times) {
+      unlockAudio();
+      for (let i = 0; i < times; i++) {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.frequency.value = 880;
+        gain.gain.value = 0.25;
+        const start = audioContext.currentTime + i * 0.3;
+        oscillator.start(start);
+        oscillator.stop(start + 0.16);
+      }
+    }
+
+    function startAlarmSound() {
+      beepBurst(4);
+      alarmLoopId = setInterval(() => beepBurst(4), 1400);
+    }
+
+    function stopAlarmSound() {
+      if (alarmLoopId) {
+        clearInterval(alarmLoopId);
+        alarmLoopId = null;
+      }
+    }
+
+    function vibrateIfSupported(pattern) {
+      if ("vibrate" in navigator) {
+        navigator.vibrate(pattern);
+      }
+    }
+
+    function setCountdownDisplay(text, warn) {
+      countdownEl.textContent = text;
+      focusCountdownEl.textContent = text;
+      countdownEl.classList.toggle("warn", warn);
+      focusCountdownEl.classList.toggle("warn", warn);
+    }
+
+    function startStandby() {
+      unlockAudio();
+
+      const hour = Number(hourSelect.value);
+      const minute = Number(minuteSelect.value);
+      const second = Number(secondSelect.value);
+
+      const now = nowSynced();
+      alarmDate = new Date(now.getTime());
+      alarmDate.setHours(hour, minute, second, 0);
+
+      if (alarmDate <= now) {
+        alarmDate.setDate(alarmDate.getDate() + 1);
+      }
+
+      lastSpokenCount = null;
+      stopAlarmSound();
+
+      const targetStr =
+        String(hour).padStart(2, "0") + ":" +
+        String(minute).padStart(2, "0") + ":" +
+        String(second).padStart(2, "0");
+
+      targetDisplay.textContent = targetStr;
+      focusTarget.textContent = "目標時刻　" + targetStr;
+
+      setCountdownDisplay("待機中", false);
+      nowOverlay.classList.remove("show");
+
+      setupCard.classList.add("hidden");
+      statusCard.classList.remove("hidden");
+
+      speak("アラームをセットしました");
+
+      if (timer) clearInterval(timer);
+      timer = setInterval(tick, 100);
+    }
+
+    function backToSetup() {
+      if (timer) clearInterval(timer);
+      stopAlarmSound();
+      speechSynthesis.cancel();
+      nowOverlay.classList.remove("show");
+      exitFocusMode();
+      setCountdownDisplay("--", false);
+      statusCard.classList.add("hidden");
+      setupCard.classList.remove("hidden");
+    }
+
+    function tick() {
+      const now = nowSynced();
+      const diff = alarmDate - now;
+
+      if (diff <= 0) {
+        clearInterval(timer);
+        setCountdownDisplay("今", false);
+        nowOverlay.classList.add("show");
+        startAlarmSound();
+        vibrateIfSupported([200, 100, 200, 100, 400]);
+        speak("今です");
+        return;
+      }
+
+      const secondsLeft = Math.ceil(diff / 1000);
+
+      if (secondsLeft <= 10) {
+        setCountdownDisplay(String(secondsLeft), true);
+      } else {
+        const minutes = Math.floor(secondsLeft / 60);
+        const seconds = secondsLeft % 60;
+        setCountdownDisplay(
+          String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0"),
+          false
+        );
+      }
+
+      if (secondsLeft <= 5 && secondsLeft > 0 && lastSpokenCount !== secondsLeft) {
+        lastSpokenCount = secondsLeft;
+        speak(String(secondsLeft));
+        vibrateIfSupported(40);
+      }
+    }
+
+    closeOverlayBtn.addEventListener("click", () => {
+      stopAlarmSound();
+      nowOverlay.classList.remove("show");
+      backToSetup();
+    });
+
+    startBtn.addEventListener("click", startStandby);
+    cancelBtn.addEventListener("click", backToSetup);
+  </script>
+</body>
+</html>
