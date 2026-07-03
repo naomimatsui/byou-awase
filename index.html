@@ -121,6 +121,36 @@
 
   .quick-btn:active { opacity: 0.7; transform: scale(0.97); }
 
+  .quickstart-card { text-align: center; }
+
+  .quickstart-header {
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--blue);
+    margin-bottom: 16px;
+  }
+
+  .preset-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .preset-btn {
+    width: auto;
+    flex: 1 1 calc(50% - 4px);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--card-soft);
+    border: 1px solid var(--line);
+    padding: 14px 10px;
+    border-radius: 14px;
+  }
+
+  .preset-btn:active { opacity: 0.7; transform: scale(0.97); }
+
   .toggle-row {
     display: flex;
     align-items: center;
@@ -519,7 +549,33 @@
       <div class="now-clock" id="nowClock">--:--:--</div>
     </div>
 
+    <div class="card quickstart-card">
+      <div class="quickstart-header">⚡ クイックスタート</div>
+      <div class="quick-row">
+        <button class="quick-btn" type="button" data-seconds="1">あと1秒</button>
+        <button class="quick-btn" type="button" data-seconds="3">あと3秒</button>
+        <button class="quick-btn" type="button" data-seconds="5">あと5秒</button>
+        <button class="quick-btn" type="button" data-seconds="10">あと10秒</button>
+        <button class="quick-btn" type="button" data-seconds="20">あと20秒</button>
+        <button class="quick-btn" type="button" data-seconds="30">あと30秒</button>
+        <button class="quick-btn" type="button" data-seconds="45">あと45秒</button>
+        <button class="quick-btn" type="button" data-seconds="60">あと1分</button>
+      </div>
+    </div>
+
     <div class="card" id="setupCard">
+      <div class="field">
+        <label>プリセット</label>
+        <div class="preset-row">
+          <button class="preset-btn" type="button" data-preset="sleep20">😴 あと20秒寝る</button>
+          <button class="preset-btn" type="button" data-preset="call">📞 予約電話</button>
+          <button class="preset-btn" type="button" data-preset="line">💬 LINE送信</button>
+          <button class="preset-btn" type="button" data-preset="threads">🧵 Threads投稿</button>
+          <button class="preset-btn" type="button" data-preset="ticket">🎫 チケット発売</button>
+          <button class="preset-btn" type="button" data-preset="live">🎥 ライブ開始</button>
+        </div>
+      </div>
+
       <div class="field">
         <label>目標時刻</label>
         <div class="time-row">
@@ -534,12 +590,12 @@
       <div class="field">
         <label>モード</label>
         <select class="select-field" id="modeSelect">
-          <option value="normal">通常</option>
-          <option value="call">予約電話</option>
-          <option value="line">LINE送信</option>
-          <option value="threads">Threads投稿</option>
-          <option value="ticket">チケット</option>
-          <option value="live">ライブ開始</option>
+          <option value="normal">⏱ 通常</option>
+          <option value="call">📞 予約電話</option>
+          <option value="line">💬 LINE送信</option>
+          <option value="threads">🧵 Threads投稿</option>
+          <option value="ticket">🎫 チケット</option>
+          <option value="live">🎥 ライブ開始</option>
         </select>
       </div>
 
@@ -597,7 +653,7 @@
         </div>
       </div>
 
-      <button class="primary-btn" id="startBtn">アラームをセット</button>
+      <button class="primary-btn" id="startBtn">秒合わせ開始</button>
 
       <div class="favorites-block">
         <label>お気に入り時刻</label>
@@ -682,6 +738,7 @@
     const countdownLabel = document.getElementById("countdownLabel");
     const focusCountdownLabel = document.getElementById("focusCountdownLabel");
     const nowOverlayText = document.getElementById("nowOverlayText");
+    const presetButtons = document.querySelectorAll(".preset-btn");
 
     function fillSelect(select, max) {
       for (let i = 0; i < max; i++) {
@@ -702,6 +759,72 @@
       minuteSelect.value = now.getMinutes();
       secondSelect.value = 0;
     })();
+
+    /* ---------- 設定の保存（localStorage） ---------- */
+
+    const SETTINGS_KEY = "byouAwaseSettings";
+
+    function saveSettings() {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+        mode: modeSelect.value,
+        notify: notifyModeSelect.value,
+        preNotify: preNotifyToggle.checked,
+        jitterPreset: jitterPresetSelect.value,
+        jitterRange: Number(jitterRangeInput.value) || 15
+      }));
+    }
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+        if (s.mode) modeSelect.value = s.mode;
+        if (s.notify) notifyModeSelect.value = s.notify;
+        if (typeof s.preNotify === "boolean") preNotifyToggle.checked = s.preNotify;
+        if (s.jitterPreset) jitterPresetSelect.value = s.jitterPreset;
+        if (s.jitterRange) jitterRangeInput.value = s.jitterRange;
+        jitterRangeRow.classList.toggle("hidden", jitterPresetSelect.value !== "custom");
+      } catch (err) {
+        // keep defaults
+      }
+    }
+
+    loadSettings();
+
+    [modeSelect, notifyModeSelect, jitterPresetSelect, jitterRangeInput].forEach((el) => {
+      el.addEventListener("change", saveSettings);
+    });
+    preNotifyToggle.addEventListener("change", saveSettings);
+
+    /* ---------- プリセット ---------- */
+
+    const PRESETS = {
+      sleep20: { mode: "normal", notify: "soundVibrate", preNotify: false, jitter: "just", quickSeconds: 20 },
+      call: { mode: "call", notify: "soundVibrate", preNotify: true, jitter: "just" },
+      line: { mode: "line", notify: "soundVibrate", preNotify: true, jitter: "5" },
+      threads: { mode: "threads", notify: "soundVibrate", preNotify: true, jitter: "5" },
+      ticket: { mode: "ticket", notify: "soundVibrate", preNotify: true, jitter: "just" },
+      live: { mode: "live", notify: "soundVibrate", preNotify: true, jitter: "just" }
+    };
+
+    presetButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const preset = PRESETS[btn.dataset.preset];
+        if (!preset) return;
+
+        modeSelect.value = preset.mode;
+        notifyModeSelect.value = preset.notify;
+        preNotifyToggle.checked = preset.preNotify;
+        jitterPresetSelect.value = preset.jitter;
+        jitterRangeRow.classList.toggle("hidden", preset.jitter !== "custom");
+        saveSettings();
+
+        if (preset.quickSeconds) {
+          startQuickTimer(preset.quickSeconds);
+        }
+      });
+    });
 
     /* ---------- お気に入り時刻（localStorage） ---------- */
 
@@ -783,14 +906,17 @@
 
     /* ---------- あと○秒クイックタイマー ---------- */
 
+    function startQuickTimer(seconds) {
+      const target = new Date(Date.now() + seconds * 1000);
+      hourSelect.value = target.getHours();
+      minuteSelect.value = target.getMinutes();
+      secondSelect.value = target.getSeconds();
+      startStandby();
+    }
+
     quickButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
-        const seconds = Number(btn.dataset.seconds);
-        const target = new Date(Date.now() + seconds * 1000);
-        hourSelect.value = target.getHours();
-        minuteSelect.value = target.getMinutes();
-        secondSelect.value = target.getSeconds();
-        startStandby();
+        startQuickTimer(Number(btn.dataset.seconds));
       });
     });
 
@@ -931,6 +1057,15 @@
       return "今！";
     }
 
+    function getModeIcon(mode) {
+      if (mode === "call") return "📞";
+      if (mode === "line") return "💬";
+      if (mode === "threads") return "🧵";
+      if (mode === "ticket") return "🎫";
+      if (mode === "live") return "🎥";
+      return "⏱";
+    }
+
     function playPreNotifyBeep() {
       unlockAudio();
       const oscillator = audioContext.createOscillator();
@@ -997,6 +1132,10 @@
       targetDisplay.textContent = targetStr;
       focusTarget.textContent = "目標時刻　" + targetStr;
 
+      const modeIcon = getModeIcon(modeSelect.value);
+      countdownLabel.textContent = modeIcon + " 開始まで";
+      focusCountdownLabel.textContent = modeIcon + " 開始まで";
+
       if (jitterRange > 0) {
         const sign = shiftSeconds >= 0 ? "+" : "-";
         jitterDiffDisplay.textContent = sign + Math.abs(shiftSeconds) + "秒";
@@ -1040,7 +1179,7 @@
 
       if (diff <= 0) {
         clearInterval(timer);
-        const zeroText = getZeroText(modeSelect.value);
+        const zeroText = getModeIcon(modeSelect.value) + " " + getZeroText(modeSelect.value);
         setCountdownDisplay(zeroText, false);
         setCountdownLabelVisible(false);
         nowOverlayText.textContent = zeroText;
