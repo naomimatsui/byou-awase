@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-<title>秒合わせ ー その瞬間を、逃さない。</title>
+<title>秒合わせ ー その一秒を逃さない。</title>
 <style>
   :root {
     --bg: #000000;
@@ -167,8 +167,6 @@
     margin: 0 0 12px;
   }
 
-  .jitter-range-row { margin-top: 12px; }
-
   .switch {
     position: relative;
     display: inline-block;
@@ -205,6 +203,7 @@
   .switch input:checked + .slider::before { transform: translateX(20px); }
 
   .jitter-range-row {
+    margin-top: 12px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -650,17 +649,17 @@
 
 <body>
   <div class="splash" id="splashScreen">
-    <div class="splash-title">秒合わせ</div>
-    <div class="splash-en">Second Sync</div>
-    <div class="splash-tagline">その一秒を逃さない。</div>
+    <div class="splash-title" data-i18n="appName">秒合わせ</div>
+    <div class="splash-en" id="splashEn">Second Sync</div>
+    <div class="splash-tagline" data-i18n="tagline">その一秒を逃さない。</div>
   </div>
 
   <div class="app">
     <header>
-      <div class="eyebrow">SECOND-PRECISE ALARM</div>
-      <h1>秒合わせ</h1>
-      <p class="tagline">その瞬間を、逃さない。</p>
-      <p class="usecase">予約開始・LINE投稿・チケット発売・ライブ配信など、タイミングを合わせたい瞬間に。</p>
+      <div class="eyebrow" data-i18n="eyebrow">SECOND-PRECISE ALARM</div>
+      <h1 data-i18n="appName">秒合わせ</h1>
+      <p class="tagline" data-i18n="tagline">その一秒を逃さない。</p>
+      <p class="usecase" data-i18n="usecase">予約開始・LINE投稿・チケット発売・ライブ配信など、タイミングを合わせたい瞬間に。</p>
     </header>
 
     <div class="card clock-card">
@@ -668,133 +667,133 @@
     </div>
 
     <div class="card quickstart-card">
-      <div class="quickstart-header">⚡ クイックスタート</div>
+      <div class="quickstart-header" data-i18n="quickStartHeader">⚡ クイックスタート</div>
       <div class="quick-row">
-        <button class="quick-btn" type="button" data-seconds="1">あと1秒</button>
-        <button class="quick-btn" type="button" data-seconds="3">あと3秒</button>
-        <button class="quick-btn" type="button" data-seconds="5">あと5秒</button>
-        <button class="quick-btn" type="button" data-seconds="10">あと10秒</button>
-        <button class="quick-btn" type="button" data-seconds="20">あと20秒</button>
-        <button class="quick-btn" type="button" data-seconds="30">あと30秒</button>
-        <button class="quick-btn" type="button" data-seconds="45">あと45秒</button>
-        <button class="quick-btn" type="button" data-seconds="60">あと1分</button>
+        <button class="quick-btn" type="button" data-seconds="1" data-i18n="quick_1">あと1秒</button>
+        <button class="quick-btn" type="button" data-seconds="3" data-i18n="quick_3">あと3秒</button>
+        <button class="quick-btn" type="button" data-seconds="5" data-i18n="quick_5">あと5秒</button>
+        <button class="quick-btn" type="button" data-seconds="10" data-i18n="quick_10">あと10秒</button>
+        <button class="quick-btn" type="button" data-seconds="20" data-i18n="quick_20">あと20秒</button>
+        <button class="quick-btn" type="button" data-seconds="30" data-i18n="quick_30">あと30秒</button>
+        <button class="quick-btn" type="button" data-seconds="45" data-i18n="quick_45">あと45秒</button>
+        <button class="quick-btn" type="button" data-seconds="60" data-i18n="quick_60">あと1分</button>
       </div>
     </div>
 
     <div class="card" id="setupCard">
       <div class="field">
-        <label>プリセット</label>
+        <label data-i18n="presetLabel">プリセット</label>
         <div class="preset-row">
-          <button class="preset-btn" type="button" data-preset="sleep20">😴 あと20秒寝る</button>
-          <button class="preset-btn" type="button" data-preset="call">📞 予約電話</button>
-          <button class="preset-btn" type="button" data-preset="line">💬 LINE送信</button>
-          <button class="preset-btn" type="button" data-preset="threads">🧵 Threads投稿</button>
-          <button class="preset-btn" type="button" data-preset="ticket">🎫 チケット発売</button>
-          <button class="preset-btn" type="button" data-preset="live">🎥 ライブ開始</button>
+          <button class="preset-btn" type="button" data-preset="sleep20" data-i18n="preset_sleep20">😴 あと20秒寝る</button>
+          <button class="preset-btn" type="button" data-preset="call" data-i18n="preset_call">📞 予約電話</button>
+          <button class="preset-btn" type="button" data-preset="line" data-i18n="preset_line">💬 LINE送信</button>
+          <button class="preset-btn" type="button" data-preset="threads" data-i18n="preset_threads">🧵 Threads投稿</button>
+          <button class="preset-btn" type="button" data-preset="ticket" data-i18n="preset_ticket">🎫 チケット発売</button>
+          <button class="preset-btn" type="button" data-preset="live" data-i18n="preset_live">🎥 ライブ開始</button>
         </div>
       </div>
 
       <div class="field">
-        <label>目標時刻</label>
+        <label data-i18n="targetTimeLabel">目標時刻</label>
         <div class="time-row">
-          <select id="hourSelect" aria-label="時"></select>
+          <select id="hourSelect" aria-label="Hour"></select>
           <span class="colon">:</span>
-          <select id="minuteSelect" aria-label="分"></select>
+          <select id="minuteSelect" aria-label="Minute"></select>
           <span class="colon">:</span>
-          <select id="secondSelect" aria-label="秒"></select>
+          <select id="secondSelect" aria-label="Second"></select>
         </div>
       </div>
 
       <div class="field">
-        <label>モード</label>
+        <label data-i18n="modeLabel">モード</label>
         <select class="select-field" id="modeSelect">
-          <option value="normal">⏱ 通常</option>
-          <option value="call">📞 予約電話</option>
-          <option value="line">💬 LINE送信</option>
-          <option value="threads">🧵 Threads投稿</option>
-          <option value="ticket">🎫 チケット</option>
-          <option value="live">🎥 ライブ開始</option>
+          <option value="normal" data-i18n="mode_normal">⏱ 通常</option>
+          <option value="call" data-i18n="mode_call">📞 予約電話</option>
+          <option value="line" data-i18n="mode_line">💬 LINE送信</option>
+          <option value="threads" data-i18n="mode_threads">🧵 Threads投稿</option>
+          <option value="ticket" data-i18n="mode_ticket">🎫 チケット</option>
+          <option value="live" data-i18n="mode_live">🎥 ライブ開始</option>
         </select>
       </div>
 
       <div class="field">
-        <label>通知方法</label>
+        <label data-i18n="notifyLabel">通知方法</label>
         <select class="select-field" id="notifyModeSelect">
-          <option value="soundVibrate">音＋バイブ</option>
-          <option value="soundOnly">音のみ</option>
-          <option value="vibrateOnly">バイブのみ</option>
-          <option value="silent">サイレント（画面表示のみ）</option>
+          <option value="soundVibrate" data-i18n="notify_soundVibrate">音＋バイブ</option>
+          <option value="soundOnly" data-i18n="notify_soundOnly">音のみ</option>
+          <option value="vibrateOnly" data-i18n="notify_vibrateOnly">バイブのみ</option>
+          <option value="silent" data-i18n="notify_silent">サイレント（画面表示のみ）</option>
         </select>
       </div>
 
       <div class="field">
         <div class="toggle-row">
-          <label>1秒前に予告する</label>
+          <label data-i18n="preNotifyLabel">1秒前に予告する</label>
           <label class="switch">
             <input type="checkbox" id="preNotifyToggle" />
             <span class="slider"></span>
           </label>
         </div>
-        <p class="jitter-desc">予約電話・チケット・LINE送信・Threads投稿などで、1秒前に短い音とアナウンスでお知らせします。</p>
+        <p class="jitter-desc" data-i18n="preNotifyDesc">予約電話・チケット・LINE送信・Threads投稿などで、1秒前に短い音とアナウンスでお知らせします。</p>
       </div>
 
       <div class="field">
-        <label>あと○秒で開始</label>
+        <label data-i18n="quickStartFieldLabel">あと○秒で開始</label>
         <div class="quick-row">
-          <button class="quick-btn" type="button" data-seconds="1">あと1秒</button>
-          <button class="quick-btn" type="button" data-seconds="3">あと3秒</button>
-          <button class="quick-btn" type="button" data-seconds="5">あと5秒</button>
-          <button class="quick-btn" type="button" data-seconds="10">あと10秒</button>
-          <button class="quick-btn" type="button" data-seconds="20">あと20秒</button>
-          <button class="quick-btn" type="button" data-seconds="30">あと30秒</button>
-          <button class="quick-btn" type="button" data-seconds="45">あと45秒</button>
-          <button class="quick-btn" type="button" data-seconds="60">あと1分</button>
+          <button class="quick-btn" type="button" data-seconds="1" data-i18n="quick_1">あと1秒</button>
+          <button class="quick-btn" type="button" data-seconds="3" data-i18n="quick_3">あと3秒</button>
+          <button class="quick-btn" type="button" data-seconds="5" data-i18n="quick_5">あと5秒</button>
+          <button class="quick-btn" type="button" data-seconds="10" data-i18n="quick_10">あと10秒</button>
+          <button class="quick-btn" type="button" data-seconds="20" data-i18n="quick_20">あと20秒</button>
+          <button class="quick-btn" type="button" data-seconds="30" data-i18n="quick_30">あと30秒</button>
+          <button class="quick-btn" type="button" data-seconds="45" data-i18n="quick_45">あと45秒</button>
+          <button class="quick-btn" type="button" data-seconds="60" data-i18n="quick_60">あと1分</button>
         </div>
       </div>
 
       <div class="field">
-        <label>自然送信アシスト</label>
-        <p class="jitter-desc">毎回ぴったり同じ時刻にならないように、数秒だけ自然にずらします。</p>
+        <label data-i18n="jitterLabel">自然送信アシスト</label>
+        <p class="jitter-desc" data-i18n="jitterDesc">毎回ぴったり同じ時刻にならないように、数秒だけ自然にずらします。</p>
         <select class="select-field" id="jitterPresetSelect">
-          <option value="just">ジャスト</option>
-          <option value="3">人間っぽく ±3秒</option>
-          <option value="5">人間っぽく ±5秒</option>
-          <option value="10">人間っぽく ±10秒</option>
-          <option value="15">人間っぽく ±15秒</option>
-          <option value="custom">カスタム</option>
+          <option value="just" data-i18n="jitter_just">ジャスト</option>
+          <option value="3" data-i18n="jitter_3">人間っぽく ±3秒</option>
+          <option value="5" data-i18n="jitter_5">人間っぽく ±5秒</option>
+          <option value="10" data-i18n="jitter_10">人間っぽく ±10秒</option>
+          <option value="15" data-i18n="jitter_15">人間っぽく ±15秒</option>
+          <option value="custom" data-i18n="jitter_custom">カスタム</option>
         </select>
         <div class="jitter-range-row hidden" id="jitterRangeRow">
-          <span>ずらし幅</span>
+          <span data-i18n="jitterRangeLabel">ずらし幅</span>
           <span>±</span>
           <input type="number" id="jitterRangeInput" min="1" max="120" value="15" />
-          <span>秒</span>
+          <span data-i18n="jitterRangeUnit">秒</span>
         </div>
       </div>
 
-      <button class="primary-btn" id="startBtn">秒合わせ開始</button>
+      <button class="primary-btn" id="startBtn" data-i18n="startBtn">秒合わせ開始</button>
 
       <div class="favorites-block">
-        <label>お気に入り時刻</label>
+        <label data-i18n="favoritesLabel">お気に入り時刻</label>
         <div class="favorite-add-row">
-          <input type="text" id="favLabelInput" placeholder="ラベル（任意）" />
-          <button id="saveFavBtn">★ 保存</button>
+          <input type="text" id="favLabelInput" data-i18n-placeholder="favLabelPlaceholder" placeholder="ラベル（任意）" />
+          <button id="saveFavBtn" data-i18n="saveBtn">★ 保存</button>
         </div>
         <div class="favorites-list" id="favoritesList"></div>
       </div>
 
       <div class="notice">
         <span class="mark">ⓘ</span>
-        <p>正確に使うには、この画面を開いたままにしてください。別アプリを開いている間は、音やカウントが遅れる場合があります。</p>
+        <p data-i18n="noticeText">正確に使うには、この画面を開いたままにしてください。別アプリを開いている間は、音やカウントが遅れる場合があります。</p>
       </div>
     </div>
 
     <div class="card hidden" id="statusCard">
       <div class="meta-block">
         <div class="meta-row">
-          基準時刻 <span class="value" id="targetDisplay">--:--:--</span>
+          <span data-i18n="baseTimeLabel">基準時刻</span> <span class="value" id="targetDisplay">--:--:--</span>
         </div>
         <div class="meta-row hidden" id="jitterInfoRow">
-          自然ずらし <span class="value" id="jitterDiffDisplay">--</span>　通知時刻 <span class="value" id="actualTimeDisplay">--:--:--</span>
+          <span data-i18n="jitterInfoLabel">自然ずらし</span> <span class="value" id="jitterDiffDisplay">--</span>　<span data-i18n="actualTimeLabel">通知時刻</span> <span class="value" id="actualTimeDisplay">--:--:--</span>
         </div>
       </div>
 
@@ -803,52 +802,60 @@
         <div class="countdown" id="countdown">--</div>
       </div>
 
-      <button class="outline-btn" id="focusBtn">全画面モード</button>
-      <button class="secondary-btn" id="cancelBtn">設定に戻る</button>
+      <button class="outline-btn" id="focusBtn" data-i18n="focusModeBtn">全画面モード</button>
+      <button class="secondary-btn" id="cancelBtn" data-i18n="backBtn">設定に戻る</button>
     </div>
 
-    <footer>BYOU AWASE</footer>
+    <footer id="footerText" data-i18n="footer">BYOU AWASE</footer>
   </div>
 
   <div class="focus-view" id="focusView">
     <div class="focus-target" id="focusTarget"></div>
     <div class="countdown-label hidden" id="focusCountdownLabel">開始まで</div>
     <div class="countdown focus-countdown" id="focusCountdown">--</div>
-    <button class="close-btn" id="exitFocusBtn">終了</button>
+    <button class="close-btn" id="exitFocusBtn" data-i18n="endBtn">終了</button>
   </div>
 
   <div class="now-overlay" id="nowOverlay">
     <div class="now-text" id="nowOverlayText">今！</div>
-    <button class="close-btn" id="closeOverlayBtn">閉じる</button>
+    <button class="close-btn" id="closeOverlayBtn" data-i18n="closeBtn">閉じる</button>
   </div>
 
-  <button class="settings-fab" id="settingsFab" type="button" aria-label="設定">⚙️</button>
+  <button class="settings-fab" id="settingsFab" type="button" aria-label="Settings">⚙️</button>
 
   <div class="settings-overlay" id="settingsOverlay">
     <div class="settings-panel">
       <div class="settings-header">
-        <h2>設定</h2>
+        <h2 data-i18n="settingsTitle">設定</h2>
         <button class="settings-close" id="settingsCloseBtn" type="button">✕</button>
       </div>
 
       <div class="field">
-        <label>通知音</label>
-        <select class="select-field" id="notifySoundSelect">
-          <option value="beep">ピッ</option>
-          <option value="pon">ポン</option>
-          <option value="click">カチッ</option>
-          <option value="bell">電話ベル</option>
+        <label>言語 / Language</label>
+        <select class="select-field" id="langSelect">
+          <option value="ja">日本語</option>
+          <option value="en">English</option>
         </select>
       </div>
 
       <div class="field">
-        <label>⌚ Apple Watch対応：準備中</label>
-        <p class="jitter-desc">腕だけ見て、3・2・1・今！が分かる機能を予定しています。</p>
+        <label data-i18n="soundLabel">通知音</label>
+        <select class="select-field" id="notifySoundSelect">
+          <option value="beep" data-i18n="sound_beep">ピッ</option>
+          <option value="pon" data-i18n="sound_pon">ポン</option>
+          <option value="click" data-i18n="sound_click">カチッ</option>
+          <option value="bell" data-i18n="sound_bell">電話ベル</option>
+        </select>
       </div>
 
       <div class="field">
-        <label>アプリ情報</label>
-        <p class="jitter-desc">
+        <label data-i18n="watchTitle">⌚ Apple Watch対応：準備中</label>
+        <p class="jitter-desc" data-i18n="watchDesc">腕だけ見て、3・2・1・今！が分かる機能を予定しています。</p>
+      </div>
+
+      <div class="field">
+        <label data-i18n="appInfoLabel">アプリ情報</label>
+        <p class="jitter-desc" data-i18n-html="appInfoText">
           アプリ名：秒合わせ<br />
           English name：Second Sync<br />
           キャッチコピー：その一秒を逃さない。
@@ -893,10 +900,218 @@
     const nowOverlayText = document.getElementById("nowOverlayText");
     const presetButtons = document.querySelectorAll(".preset-btn");
     const splashScreen = document.getElementById("splashScreen");
+    const splashEn = document.getElementById("splashEn");
     const settingsFab = document.getElementById("settingsFab");
     const settingsOverlay = document.getElementById("settingsOverlay");
     const settingsCloseBtn = document.getElementById("settingsCloseBtn");
     const notifySoundSelect = document.getElementById("notifySoundSelect");
+    const langSelect = document.getElementById("langSelect");
+
+    /* ---------- 多言語データ ---------- */
+
+    const I18N = {
+      ja: {
+        eyebrow: "SECOND-PRECISE ALARM",
+        appName: "秒合わせ",
+        tagline: "その一秒を逃さない。",
+        usecase: "予約開始・LINE投稿・チケット発売・ライブ配信など、タイミングを合わせたい瞬間に。",
+        presetLabel: "プリセット",
+        preset_sleep20: "😴 あと20秒寝る",
+        preset_call: "📞 予約電話",
+        preset_line: "💬 LINE送信",
+        preset_threads: "🧵 Threads投稿",
+        preset_ticket: "🎫 チケット発売",
+        preset_live: "🎥 ライブ開始",
+        targetTimeLabel: "目標時刻",
+        modeLabel: "モード",
+        mode_normal: "⏱ 通常",
+        mode_call: "📞 予約電話",
+        mode_line: "💬 LINE送信",
+        mode_threads: "🧵 Threads投稿",
+        mode_ticket: "🎫 チケット",
+        mode_live: "🎥 ライブ開始",
+        notifyLabel: "通知方法",
+        notify_soundVibrate: "音＋バイブ",
+        notify_soundOnly: "音のみ",
+        notify_vibrateOnly: "バイブのみ",
+        notify_silent: "サイレント（画面表示のみ）",
+        preNotifyLabel: "1秒前に予告する",
+        preNotifyDesc: "予約電話・チケット・LINE送信・Threads投稿などで、1秒前に短い音とアナウンスでお知らせします。",
+        quickStartHeader: "⚡ クイックスタート",
+        quickStartFieldLabel: "あと○秒で開始",
+        quick_1: "あと1秒",
+        quick_3: "あと3秒",
+        quick_5: "あと5秒",
+        quick_10: "あと10秒",
+        quick_20: "あと20秒",
+        quick_30: "あと30秒",
+        quick_45: "あと45秒",
+        quick_60: "あと1分",
+        jitterLabel: "自然送信アシスト",
+        jitterDesc: "毎回ぴったり同じ時刻にならないように、数秒だけ自然にずらします。",
+        jitter_just: "ジャスト",
+        jitter_3: "人間っぽく ±3秒",
+        jitter_5: "人間っぽく ±5秒",
+        jitter_10: "人間っぽく ±10秒",
+        jitter_15: "人間っぽく ±15秒",
+        jitter_custom: "カスタム",
+        jitterRangeLabel: "ずらし幅",
+        jitterRangeUnit: "秒",
+        startBtn: "秒合わせ開始",
+        favoritesLabel: "お気に入り時刻",
+        favLabelPlaceholder: "ラベル（任意）",
+        saveBtn: "★ 保存",
+        favoritesEmpty: "保存された時刻はまだありません",
+        noticeText: "正確に使うには、この画面を開いたままにしてください。別アプリを開いている間は、音やカウントが遅れる場合があります。",
+        baseTimeLabel: "基準時刻",
+        jitterInfoLabel: "自然ずらし",
+        actualTimeLabel: "通知時刻",
+        countdownLabelText: "開始まで",
+        standbyText: "待機中",
+        focusModeBtn: "全画面モード",
+        backBtn: "設定に戻る",
+        closeBtn: "閉じる",
+        endBtn: "終了",
+        footer: "BYOU AWASE",
+        settingsTitle: "設定",
+        soundLabel: "通知音",
+        sound_beep: "ピッ",
+        sound_pon: "ポン",
+        sound_click: "カチッ",
+        sound_bell: "電話ベル",
+        watchTitle: "⌚ Apple Watch対応：準備中",
+        watchDesc: "腕だけ見て、3・2・1・今！が分かる機能を予定しています。",
+        appInfoLabel: "アプリ情報",
+        appInfoText: "アプリ名：秒合わせ<br />English name：Second Sync<br />キャッチコピー：その一秒を逃さない。",
+        zero_normal: "今！",
+        zero_call: "発信！",
+        zero_line: "送信！",
+        zero_threads: "投稿！",
+        zero_ticket: "押す！",
+        zero_live: "開始！",
+        setAnnounce: "アラームをセットしました",
+        nowSpeech: "今です",
+        preNotifySpeech: "1秒前"
+      },
+      en: {
+        eyebrow: "SECOND-PRECISE ALARM",
+        appName: "Second Sync",
+        tagline: "Never Miss That Second.",
+        usecase: "For reservation openings, LINE posts, ticket sales, live streams — anything that needs perfect timing.",
+        presetLabel: "Presets",
+        preset_sleep20: "😴 Sleep 20 sec",
+        preset_call: "📞 Call",
+        preset_line: "💬 LINE",
+        preset_threads: "🧵 Threads",
+        preset_ticket: "🎫 Tickets",
+        preset_live: "🎥 Live",
+        targetTimeLabel: "Target Time",
+        modeLabel: "Mode",
+        mode_normal: "⏱ Normal",
+        mode_call: "📞 Call",
+        mode_line: "💬 LINE",
+        mode_threads: "🧵 Threads",
+        mode_ticket: "🎫 Tickets",
+        mode_live: "🎥 Live",
+        notifyLabel: "Notification",
+        notify_soundVibrate: "Sound + Vibration",
+        notify_soundOnly: "Sound Only",
+        notify_vibrateOnly: "Vibration Only",
+        notify_silent: "Silent (Display Only)",
+        preNotifyLabel: "1-Second Warning",
+        preNotifyDesc: "For calls, tickets, LINE, Threads and more — get a short sound and announcement 1 second before.",
+        quickStartHeader: "⚡ Quick Start",
+        quickStartFieldLabel: "Quick Start",
+        quick_1: "1 sec",
+        quick_3: "3 sec",
+        quick_5: "5 sec",
+        quick_10: "10 sec",
+        quick_20: "20 sec",
+        quick_30: "30 sec",
+        quick_45: "45 sec",
+        quick_60: "1 min",
+        jitterLabel: "Natural Timing Assist",
+        jitterDesc: "Slightly shifts the timing by a few seconds so it does not always happen at the exact same time.",
+        jitter_just: "Exact",
+        jitter_3: "Natural ±3 sec",
+        jitter_5: "Natural ±5 sec",
+        jitter_10: "Natural ±10 sec",
+        jitter_15: "Natural ±15 sec",
+        jitter_custom: "Custom",
+        jitterRangeLabel: "Shift Range",
+        jitterRangeUnit: "sec",
+        startBtn: "Start Second Sync",
+        favoritesLabel: "Favorites",
+        favLabelPlaceholder: "Label (optional)",
+        saveBtn: "★ Save",
+        favoritesEmpty: "No saved times yet",
+        noticeText: "Keep this screen open for accurate timing. Sound and countdown may lag while another app is in front.",
+        baseTimeLabel: "Base Time",
+        jitterInfoLabel: "Natural Shift",
+        actualTimeLabel: "Notify Time",
+        countdownLabelText: "Starting in",
+        standbyText: "Standby",
+        focusModeBtn: "Fullscreen Mode",
+        backBtn: "Back to Setup",
+        closeBtn: "Close",
+        endBtn: "End",
+        footer: "SECOND SYNC",
+        settingsTitle: "Settings",
+        soundLabel: "Sound",
+        sound_beep: "Beep",
+        sound_pon: "Pon",
+        sound_click: "Click",
+        sound_bell: "Phone Bell",
+        watchTitle: "⌚ Apple Watch Support: Coming Soon",
+        watchDesc: "See 3, 2, 1, Now! right on your wrist.",
+        appInfoLabel: "App Info",
+        appInfoText: "App Name: Second Sync<br />Japanese Name: 秒合わせ<br />Tagline: Never Miss That Second.",
+        zero_normal: "Now!",
+        zero_call: "Call!",
+        zero_line: "Send!",
+        zero_threads: "Post!",
+        zero_ticket: "Tap!",
+        zero_live: "Start!",
+        setAnnounce: "Alarm set",
+        nowSpeech: "Now",
+        preNotifySpeech: "1 second"
+      }
+    };
+
+    let currentLang = "ja";
+
+    function t(key) {
+      const dict = I18N[currentLang] || I18N.ja;
+      return dict[key] !== undefined ? dict[key] : (I18N.ja[key] !== undefined ? I18N.ja[key] : key);
+    }
+
+    function applyLanguage(lang) {
+      currentLang = I18N[lang] ? lang : "ja";
+      langSelect.value = currentLang;
+      document.documentElement.lang = currentLang;
+      document.title = t("appName") + " ー " + t("tagline");
+
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        el.textContent = t(el.dataset.i18n);
+      });
+
+      document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+        el.innerHTML = t(el.dataset.i18nHtml);
+      });
+
+      document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+        el.placeholder = t(el.dataset.i18nPlaceholder);
+      });
+
+      splashEn.classList.toggle("hidden", currentLang !== "ja");
+
+      renderFavorites();
+    }
+
+    langSelect.addEventListener("change", () => {
+      applyLanguage(langSelect.value);
+      saveSettings();
+    });
 
     function fillSelect(select, max) {
       for (let i = 0; i < max; i++) {
@@ -959,7 +1174,8 @@
         preNotify: preNotifyToggle.checked,
         jitterPreset: jitterPresetSelect.value,
         jitterRange: Number(jitterRangeInput.value) || 15,
-        notifySound: notifySoundSelect.value
+        notifySound: notifySoundSelect.value,
+        lang: langSelect.value
       }));
     }
 
@@ -974,6 +1190,7 @@
         if (s.jitterPreset) jitterPresetSelect.value = s.jitterPreset;
         if (s.jitterRange) jitterRangeInput.value = s.jitterRange;
         if (s.notifySound) notifySoundSelect.value = s.notifySound;
+        if (s.lang) currentLang = s.lang;
         jitterRangeRow.classList.toggle("hidden", jitterPresetSelect.value !== "custom");
       } catch (err) {
         // keep defaults
@@ -1040,7 +1257,7 @@
       if (list.length === 0) {
         const empty = document.createElement("div");
         empty.className = "favorites-empty";
-        empty.textContent = "保存された時刻はまだありません";
+        empty.textContent = t("favoritesEmpty");
         favoritesListEl.appendChild(empty);
         return;
       }
@@ -1091,8 +1308,6 @@
       favLabelInput.value = "";
       renderFavorites();
     });
-
-    renderFavorites();
 
     /* ---------- あと○秒クイックタイマー ---------- */
 
@@ -1192,7 +1407,7 @@
     function speak(text) {
       if (!("speechSynthesis" in window)) return;
       const voice = new SpeechSynthesisUtterance(text);
-      voice.lang = "ja-JP";
+      voice.lang = currentLang === "en" ? "en-US" : "ja-JP";
       voice.rate = 1.0;
       speechSynthesis.speak(voice);
     }
@@ -1255,12 +1470,7 @@
     }
 
     function getZeroText(mode) {
-      if (mode === "call") return "発信！";
-      if (mode === "line") return "送信！";
-      if (mode === "threads") return "投稿！";
-      if (mode === "ticket") return "押す！";
-      if (mode === "live") return "開始！";
-      return "今！";
+      return t("zero_" + mode) || t("zero_normal");
     }
 
     function getModeIcon(mode) {
@@ -1336,29 +1546,29 @@
         String(second).padStart(2, "0");
 
       targetDisplay.textContent = targetStr;
-      focusTarget.textContent = "目標時刻　" + targetStr;
+      focusTarget.textContent = t("targetTimeLabel") + "　" + targetStr;
 
       const modeIcon = getModeIcon(modeSelect.value);
-      countdownLabel.textContent = modeIcon + " 開始まで";
-      focusCountdownLabel.textContent = modeIcon + " 開始まで";
+      countdownLabel.textContent = modeIcon + " " + t("countdownLabelText");
+      focusCountdownLabel.textContent = modeIcon + " " + t("countdownLabelText");
 
       if (jitterRange > 0) {
         const sign = shiftSeconds >= 0 ? "+" : "-";
-        jitterDiffDisplay.textContent = sign + Math.abs(shiftSeconds) + "秒";
+        jitterDiffDisplay.textContent = sign + Math.abs(shiftSeconds) + t("jitterRangeUnit");
         actualTimeDisplay.textContent = formatHms(alarmDate);
         jitterInfoRow.classList.remove("hidden");
       } else {
         jitterInfoRow.classList.add("hidden");
       }
 
-      setCountdownDisplay("待機中", false);
+      setCountdownDisplay(t("standbyText"), false);
       setCountdownLabelVisible(false);
       nowOverlay.classList.remove("show");
 
       setupCard.classList.add("hidden");
       statusCard.classList.remove("hidden");
 
-      if (shouldPlaySound()) speak("アラームをセットしました");
+      if (shouldPlaySound()) speak(t("setAnnounce"));
 
       enterFocusMode();
 
@@ -1392,7 +1602,7 @@
         nowOverlay.classList.add("show");
         if (shouldPlaySound()) {
           startAlarmSound();
-          speak("今です");
+          speak(t("nowSpeech"));
         }
         if (shouldVibrate()) vibrateIfSupported(700);
         return;
@@ -1418,7 +1628,7 @@
         if (secondsLeft === 1 && preNotifyToggle.checked) {
           if (shouldPlaySound()) {
             playPreNotifyBeep();
-            speak("1秒前");
+            speak(t("preNotifySpeech"));
           }
         } else if (shouldPlaySound()) {
           speak(String(secondsLeft));
@@ -1436,6 +1646,8 @@
 
     startBtn.addEventListener("click", startStandby);
     cancelBtn.addEventListener("click", backToSetup);
+
+    applyLanguage(currentLang);
   </script>
 </body>
 </html>
