@@ -75,7 +75,7 @@ splashScreen.addEventListener("transitionend", () => {
 /* ---------- プリセット ---------- */
 
 const PRESETS = {
-  sleep20: { mode: "normal", notify: "soundVibrate", preNotify: false, jitter: "just", quickSeconds: 20 },
+  sleep20: { mode: "normal", notify: "soundVibrate", preNotify: false, jitter: "just", quickSeconds: 20, voiceOnly: true },
   call: { mode: "call", notify: "soundVibrate", preNotify: true, jitter: "just" },
   line: { mode: "line", notify: "soundVibrate", preNotify: true, jitter: "5" },
   threads: { mode: "threads", notify: "soundVibrate", preNotify: true, jitter: "5" },
@@ -96,7 +96,7 @@ presetButtons.forEach((btn) => {
     saveSettings();
 
     if (preset.quickSeconds) {
-      startQuickTimer(preset.quickSeconds);
+      startQuickTimer(preset.quickSeconds, { voiceOnly: !!preset.voiceOnly });
     }
   });
 });
@@ -181,12 +181,12 @@ document.addEventListener("secondsync:languagechange", renderFavorites);
 
 /* ---------- あと○秒クイックタイマー ---------- */
 
-function startQuickTimer(seconds) {
+function startQuickTimer(seconds, options) {
   const target = new Date(Date.now() + seconds * 1000);
   hourSelect.value = target.getHours();
   minuteSelect.value = target.getMinutes();
   secondSelect.value = target.getSeconds();
-  startStandby();
+  startStandby(options);
 }
 
 quickButtons.forEach((btn) => {
@@ -264,6 +264,7 @@ let timer = null;
 let lastSpokenCount = null;
 let alarmLoopId = null;
 let audioContext = null;
+let voiceOnlyMode = false;
 
 function unlockAudio() {
   if (!audioContext) {
@@ -376,8 +377,10 @@ function setCountdownLabelVisible(visible) {
   focusCountdownLabel.classList.toggle("hidden", !visible);
 }
 
-function startStandby() {
+function startStandby(options) {
   unlockAudio();
+
+  voiceOnlyMode = !!(options && options.voiceOnly);
 
   const hour = Number(hourSelect.value);
   const minute = Number(minuteSelect.value);
@@ -471,7 +474,7 @@ function tick() {
     nowOverlayText.textContent = zeroText;
     nowOverlay.classList.add("show");
     if (shouldPlaySound()) {
-      startAlarmSound();
+      if (!voiceOnlyMode) startAlarmSound();
       speak(t("nowSpeech"));
     }
     if (shouldVibrate()) vibrateIfSupported(700);
