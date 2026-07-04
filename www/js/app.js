@@ -44,6 +44,13 @@ const runningIndicator = document.getElementById("runningIndicator");
 const callNowBtn = document.getElementById("callNowBtn");
 const toast = document.getElementById("toast");
 const toastText = document.getElementById("toastText");
+const completionInfo = document.getElementById("completionInfo");
+const completionMode = document.getElementById("completionMode");
+const completionTarget = document.getElementById("completionTarget");
+const completionActual = document.getElementById("completionActual");
+const retryBtn = document.getElementById("retryBtn");
+const sleepBadge = document.getElementById("sleepBadge");
+const focusSleepBadge = document.getElementById("focusSleepBadge");
 
 let toastTimer = null;
 
@@ -96,7 +103,7 @@ splashScreen.addEventListener("transitionend", () => {
 /* ---------- プリセット ---------- */
 
 const PRESETS = {
-  sleep20: { mode: "normal", notify: "soundVibrate", preNotify: false, jitter: "just", quickSeconds: 20, forceSound: "bell" },
+  sleep20: { mode: "normal", notify: "vibrateOnly", preNotify: false, jitter: "just", quickSeconds: 20, sleepMode: true },
   call: { mode: "call", notify: "soundVibrate", preNotify: true, jitter: "just" },
   line: { mode: "line", notify: "soundVibrate", preNotify: true, jitter: "5" },
   threads: { mode: "threads", notify: "soundVibrate", preNotify: true, jitter: "5" },
@@ -118,7 +125,7 @@ presetButtons.forEach((btn) => {
     saveSettings();
 
     if (preset.quickSeconds) {
-      startQuickTimer(preset.quickSeconds, { forceSound: preset.forceSound });
+      startQuickTimer(preset.quickSeconds, { forceSound: preset.forceSound, sleepMode: !!preset.sleepMode });
     }
   });
 });
@@ -204,6 +211,8 @@ document.addEventListener("secondsync:languagechange", renderFavorites);
 /* ---------- あと○秒クイックタイマー ---------- */
 
 function startQuickTimer(seconds, options) {
+  lastQuickSeconds = seconds;
+  lastStartOptions = options || null;
   const target = new Date(Date.now() + seconds * 1000);
   hourSelect.value = target.getHours();
   minuteSelect.value = target.getMinutes();
@@ -288,6 +297,10 @@ let alarmLoopId = null;
 let audioContext = null;
 let forcedSoundStyle = null;
 let isAlarmRunning = false;
+let sleepMode = false;
+let lastQuickSeconds = null;
+let lastStartOptions = null;
+let lastTargetStr = "";
 
 function unlockAudio() {
   if (!audioContext) {
@@ -388,6 +401,18 @@ function playPreNotifyBeep() {
   oscillator.stop(audioContext.currentTime + 0.12);
 }
 
+function playQuietNotify() {
+  unlockAudio();
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
+  oscillator.frequency.value = 700;
+  gain.gain.value = 0.12;
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + 0.25);
+}
+
 function setCountdownDisplay(text, warn) {
   countdownEl.textContent = text;
   focusCountdownEl.textContent = text;
@@ -410,6 +435,8 @@ function startStandby(options) {
 
   isAlarmRunning = true;
   forcedSoundStyle = (options && options.forceSound) || null;
+  sleepMode = !!(options && options.sleepMode);
+  lastStartOptions = options || null;
 
   const hour = Number(hourSelect.value);
   const minute = Number(minuteSelect.value);
@@ -447,12 +474,18 @@ function startStandby(options) {
     String(minute).padStart(2, "0") + ":" +
     String(second).padStart(2, "0");
 
+  lastTargetStr = targetStr;
   targetDisplay.textContent = targetStr;
   focusTarget.textContent = t("targetTimeLabel") + "　" + targetStr;
 
   const modeIcon = getModeIcon(modeSelect.value);
   countdownLabel.textContent = modeIcon + " " + t("countdownLabelText");
   focusCountdownLabel.textContent = modeIcon + " " + t("countdownLabelText");
+
+  sleepBadge.classList.toggle("hidden", !sleepMode);
+  focusSleepBadge.classList.toggle("hidden", !sleepMode);
+  statusCard.classList.toggle("sleep-mode", sleepMode);
+  focusView.classList.toggle("sleep-mode", sleepMode);
 
   if (jitterRange > 0) {
     const sign = shiftSeconds >= 0 ? "+" : "-";
@@ -470,7 +503,7 @@ function startStandby(options) {
   setupCard.classList.add("hidden");
   statusCard.classList.remove("hidden");
 
-  if (shouldPlaySound()) speak(t("setAnnounce"));
+  if (!sleepMode && shouldPlaySound()) speak(t("setAnnounce"));
 
   enterFocusMode();
 
@@ -483,11 +516,16 @@ function backToSetup() {
   stopAlarmSound();
   speechSynthesis.cancel();
   nowOverlay.classList.remove("show");
+  nowOverlay.classList.remove("sleep-mode");
   callNowBtn.classList.add("hidden");
   exitFocusMode();
   setCountdownDisplay("--", false);
   setCountdownLabelVisible(false);
   jitterInfoRow.classList.add("hidden");
+  sleepBadge.classList.add("hidden");
+  focusSleepBadge.classList.add("hidden");
+  statusCard.classList.remove("sleep-mode");
+  focusView.classList.remove("sleep-mode");
   isAlarmRunning = false;
   statusCard.classList.add("hidden");
   setupCard.classList.remove("hidden");
@@ -500,25 +538,42 @@ function tick() {
   if (diff <= 0) {
     clearInterval(timer);
     isAlarmRunning = false;
-    const zeroText = getModeIcon(modeSelect.value) + " " + getZeroText(modeSelect.value);
+
+    const zeroText = sleepMode
+      ? ("☀️ " + t("wakeUpText"))
+      : (getModeIcon(modeSelect.value) + " " + getZeroText(modeSelect.value));
     setCountdownDisplay(zeroText, false);
     setCountdownLabelVisible(false);
     nowOverlayText.textContent = zeroText;
 
+    completionMode.textContent = sleepMode ? ("😴 " + t("sleepModeText")) : t("mode_" + modeSelect.value);
+    completionTarget.textContent = lastTargetStr;
+    completionActual.textContent = formatHms(alarmDate);
+
     const cleanPhone = phoneNumberInput.value.trim().replace(/[^0-9+]/g, "");
-    if (modeSelect.value === "call" && cleanPhone) {
+    if (!sleepMode && modeSelect.value === "call" && cleanPhone) {
       callNowBtn.href = "tel:" + cleanPhone;
       callNowBtn.classList.remove("hidden");
     } else {
       callNowBtn.classList.add("hidden");
     }
 
+    nowOverlay.classList.toggle("sleep-mode", sleepMode);
     nowOverlay.classList.add("show");
-    if (shouldPlaySound()) {
-      startAlarmSound();
-      speak(t("nowSpeech"));
+
+    if (sleepMode) {
+      if (shouldVibrate()) {
+        vibrateIfSupported(200);
+      } else if (shouldPlaySound()) {
+        playQuietNotify();
+      }
+    } else {
+      if (shouldPlaySound()) {
+        startAlarmSound();
+        speak(t("nowSpeech"));
+      }
+      if (shouldVibrate()) vibrateIfSupported(700);
     }
-    if (shouldVibrate()) vibrateIfSupported(700);
     return;
   }
 
@@ -539,16 +594,18 @@ function tick() {
   if (secondsLeft <= 5 && secondsLeft > 0 && lastSpokenCount !== secondsLeft) {
     lastSpokenCount = secondsLeft;
 
-    if (secondsLeft === 1 && preNotifyToggle.checked) {
-      if (shouldPlaySound()) {
-        playPreNotifyBeep();
-        speak(t("preNotifySpeech"));
+    if (!sleepMode) {
+      if (secondsLeft === 1 && preNotifyToggle.checked) {
+        if (shouldPlaySound()) {
+          playPreNotifyBeep();
+          speak(t("preNotifySpeech"));
+        }
+      } else if (shouldPlaySound()) {
+        speak(String(secondsLeft));
       }
-    } else if (shouldPlaySound()) {
-      speak(String(secondsLeft));
-    }
 
-    if (shouldVibrate() && secondsLeft <= 3) vibrateIfSupported(80);
+      if (shouldVibrate() && secondsLeft <= 3) vibrateIfSupported(80);
+    }
   }
 }
 
@@ -558,7 +615,20 @@ closeOverlayBtn.addEventListener("click", () => {
   backToSetup();
 });
 
-startBtn.addEventListener("click", startStandby);
+retryBtn.addEventListener("click", () => {
+  stopAlarmSound();
+  nowOverlay.classList.remove("show");
+  if (lastQuickSeconds !== null) {
+    startQuickTimer(lastQuickSeconds, lastStartOptions);
+  } else {
+    startStandby(lastStartOptions);
+  }
+});
+
+startBtn.addEventListener("click", () => {
+  lastQuickSeconds = null;
+  startStandby();
+});
 cancelBtn.addEventListener("click", () => {
   backToSetup();
   showToast(t("canceledText"));

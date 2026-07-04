@@ -754,6 +754,55 @@
 
   .call-now-btn:active { transform: scale(0.98); opacity: 0.9; }
 
+  .completion-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: -8px;
+  }
+
+  .completion-row {
+    font-size: 13px;
+    color: var(--sub);
+  }
+
+  .completion-row span + span {
+    color: var(--ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .retry-btn {
+    width: auto;
+    min-width: 200px;
+    padding: 15px 26px;
+  }
+
+  .sleep-badge {
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--sub-dim);
+    margin-bottom: 12px;
+  }
+
+  .now-overlay.sleep-mode {
+    animation: none;
+    background: #000000;
+  }
+
+  .now-overlay.sleep-mode .now-text {
+    text-shadow: none;
+    color: #58585c;
+    font-size: clamp(48px, 15vw, 92px);
+  }
+
+  #statusCard.sleep-mode .countdown.warn,
+  .focus-view.sleep-mode .countdown.warn {
+    color: #58585c;
+    text-shadow: none;
+  }
+
   .toast {
     position: fixed;
     left: 50%;
@@ -933,6 +982,7 @@
     </div>
 
     <div class="card hidden" id="statusCard">
+      <div class="sleep-badge hidden" id="sleepBadge">🔕 <span data-i18n="quietAlertText">静かに通知</span></div>
       <div class="meta-block">
         <div class="meta-row">
           <span data-i18n="baseTimeLabel">基準時刻</span> <span class="value" id="targetDisplay">--:--:--</span>
@@ -956,6 +1006,7 @@
   </div>
 
   <div class="focus-view" id="focusView">
+    <div class="sleep-badge hidden" id="focusSleepBadge">🔕 <span data-i18n="quietAlertText">静かに通知</span></div>
     <div class="focus-target" id="focusTarget"></div>
     <div class="countdown-label hidden" id="focusCountdownLabel">開始まで</div>
     <div class="countdown focus-countdown" id="focusCountdown">--</div>
@@ -964,8 +1015,14 @@
 
   <div class="now-overlay" id="nowOverlay">
     <div class="now-text" id="nowOverlayText">今！</div>
+    <div class="completion-info" id="completionInfo">
+      <div class="completion-row"><span data-i18n="modeLabel">モード</span>：<span id="completionMode"></span></div>
+      <div class="completion-row"><span data-i18n="targetTimeLabel">目標時刻</span>：<span id="completionTarget"></span></div>
+      <div class="completion-row"><span data-i18n="actualTimeLabel">通知時刻</span>：<span id="completionActual"></span></div>
+    </div>
     <a class="call-now-btn hidden" id="callNowBtn" href="tel:" data-i18n="callNowBtn">📞 電話をかける</a>
-    <button class="close-btn" id="closeOverlayBtn" data-i18n="closeBtn">閉じる</button>
+    <button class="primary-btn retry-btn" id="retryBtn" type="button" data-i18n="retryBtn">もう一度</button>
+    <button class="close-btn" id="closeOverlayBtn" data-i18n="homeBtn">ホームに戻る</button>
   </div>
 
   <div class="toast" id="toast">
@@ -1071,6 +1128,13 @@
     const callNowBtn = document.getElementById("callNowBtn");
     const toast = document.getElementById("toast");
     const toastText = document.getElementById("toastText");
+    const completionInfo = document.getElementById("completionInfo");
+    const completionMode = document.getElementById("completionMode");
+    const completionTarget = document.getElementById("completionTarget");
+    const completionActual = document.getElementById("completionActual");
+    const retryBtn = document.getElementById("retryBtn");
+    const sleepBadge = document.getElementById("sleepBadge");
+    const focusSleepBadge = document.getElementById("focusSleepBadge");
 
     /* ---------- 多言語データ ---------- */
 
@@ -1141,7 +1205,11 @@
         cancelBtn: "キャンセル",
         canceledText: "キャンセルしました",
         alreadyRunningText: "すでに秒合わせ中です。キャンセルしてから再設定してください。",
-        closeBtn: "閉じる",
+        retryBtn: "もう一度",
+        homeBtn: "ホームに戻る",
+        wakeUpText: "起きて！",
+        quietAlertText: "静かに通知",
+        sleepModeText: "スリープモード",
         endBtn: "終了",
         footer: "BYOU AWASE",
         settingsTitle: "設定",
@@ -1232,7 +1300,11 @@
         cancelBtn: "Cancel",
         canceledText: "Canceled",
         alreadyRunningText: "Second Sync is already running. Please cancel it before setting a new one.",
-        closeBtn: "Close",
+        retryBtn: "Try Again",
+        homeBtn: "Back to Home",
+        wakeUpText: "Wake up!",
+        quietAlertText: "Quiet Alert",
+        sleepModeText: "Sleep Mode",
         endBtn: "End",
         footer: "SECOND SYNC",
         settingsTitle: "Settings",
@@ -1422,7 +1494,7 @@
     /* ---------- プリセット ---------- */
 
     const PRESETS = {
-      sleep20: { mode: "normal", notify: "soundVibrate", preNotify: false, jitter: "just", quickSeconds: 20, forceSound: "bell" },
+      sleep20: { mode: "normal", notify: "vibrateOnly", preNotify: false, jitter: "just", quickSeconds: 20, sleepMode: true },
       call: { mode: "call", notify: "soundVibrate", preNotify: true, jitter: "just" },
       line: { mode: "line", notify: "soundVibrate", preNotify: true, jitter: "5" },
       threads: { mode: "threads", notify: "soundVibrate", preNotify: true, jitter: "5" },
@@ -1444,7 +1516,7 @@
         saveSettings();
 
         if (preset.quickSeconds) {
-          startQuickTimer(preset.quickSeconds, { forceSound: preset.forceSound });
+          startQuickTimer(preset.quickSeconds, { forceSound: preset.forceSound, sleepMode: !!preset.sleepMode });
         }
       });
     });
@@ -1528,6 +1600,8 @@
     /* ---------- あと○秒クイックタイマー ---------- */
 
     function startQuickTimer(seconds, options) {
+      lastQuickSeconds = seconds;
+      lastStartOptions = options || null;
       const target = new Date(Date.now() + seconds * 1000);
       hourSelect.value = target.getHours();
       minuteSelect.value = target.getMinutes();
@@ -1612,6 +1686,10 @@
     let audioContext = null;
     let forcedSoundStyle = null;
     let isAlarmRunning = false;
+    let sleepMode = false;
+    let lastQuickSeconds = null;
+    let lastStartOptions = null;
+    let lastTargetStr = "";
 
     function unlockAudio() {
       if (!audioContext) {
@@ -1712,6 +1790,18 @@
       oscillator.stop(audioContext.currentTime + 0.12);
     }
 
+    function playQuietNotify() {
+      unlockAudio();
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.frequency.value = 700;
+      gain.gain.value = 0.12;
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.25);
+    }
+
     function setCountdownDisplay(text, warn) {
       countdownEl.textContent = text;
       focusCountdownEl.textContent = text;
@@ -1734,6 +1824,8 @@
 
       isAlarmRunning = true;
       forcedSoundStyle = (options && options.forceSound) || null;
+      sleepMode = !!(options && options.sleepMode);
+      lastStartOptions = options || null;
 
       const hour = Number(hourSelect.value);
       const minute = Number(minuteSelect.value);
@@ -1771,12 +1863,18 @@
         String(minute).padStart(2, "0") + ":" +
         String(second).padStart(2, "0");
 
+      lastTargetStr = targetStr;
       targetDisplay.textContent = targetStr;
       focusTarget.textContent = t("targetTimeLabel") + "　" + targetStr;
 
       const modeIcon = getModeIcon(modeSelect.value);
       countdownLabel.textContent = modeIcon + " " + t("countdownLabelText");
       focusCountdownLabel.textContent = modeIcon + " " + t("countdownLabelText");
+
+      sleepBadge.classList.toggle("hidden", !sleepMode);
+      focusSleepBadge.classList.toggle("hidden", !sleepMode);
+      statusCard.classList.toggle("sleep-mode", sleepMode);
+      focusView.classList.toggle("sleep-mode", sleepMode);
 
       if (jitterRange > 0) {
         const sign = shiftSeconds >= 0 ? "+" : "-";
@@ -1794,7 +1892,7 @@
       setupCard.classList.add("hidden");
       statusCard.classList.remove("hidden");
 
-      if (shouldPlaySound()) speak(t("setAnnounce"));
+      if (!sleepMode && shouldPlaySound()) speak(t("setAnnounce"));
 
       enterFocusMode();
 
@@ -1807,11 +1905,16 @@
       stopAlarmSound();
       speechSynthesis.cancel();
       nowOverlay.classList.remove("show");
+      nowOverlay.classList.remove("sleep-mode");
       callNowBtn.classList.add("hidden");
       exitFocusMode();
       setCountdownDisplay("--", false);
       setCountdownLabelVisible(false);
       jitterInfoRow.classList.add("hidden");
+      sleepBadge.classList.add("hidden");
+      focusSleepBadge.classList.add("hidden");
+      statusCard.classList.remove("sleep-mode");
+      focusView.classList.remove("sleep-mode");
       isAlarmRunning = false;
       statusCard.classList.add("hidden");
       setupCard.classList.remove("hidden");
@@ -1824,25 +1927,42 @@
       if (diff <= 0) {
         clearInterval(timer);
         isAlarmRunning = false;
-        const zeroText = getModeIcon(modeSelect.value) + " " + getZeroText(modeSelect.value);
+
+        const zeroText = sleepMode
+          ? ("☀️ " + t("wakeUpText"))
+          : (getModeIcon(modeSelect.value) + " " + getZeroText(modeSelect.value));
         setCountdownDisplay(zeroText, false);
         setCountdownLabelVisible(false);
         nowOverlayText.textContent = zeroText;
 
+        completionMode.textContent = sleepMode ? ("😴 " + t("sleepModeText")) : t("mode_" + modeSelect.value);
+        completionTarget.textContent = lastTargetStr;
+        completionActual.textContent = formatHms(alarmDate);
+
         const cleanPhone = phoneNumberInput.value.trim().replace(/[^0-9+]/g, "");
-        if (modeSelect.value === "call" && cleanPhone) {
+        if (!sleepMode && modeSelect.value === "call" && cleanPhone) {
           callNowBtn.href = "tel:" + cleanPhone;
           callNowBtn.classList.remove("hidden");
         } else {
           callNowBtn.classList.add("hidden");
         }
 
+        nowOverlay.classList.toggle("sleep-mode", sleepMode);
         nowOverlay.classList.add("show");
-        if (shouldPlaySound()) {
-          startAlarmSound();
-          speak(t("nowSpeech"));
+
+        if (sleepMode) {
+          if (shouldVibrate()) {
+            vibrateIfSupported(200);
+          } else if (shouldPlaySound()) {
+            playQuietNotify();
+          }
+        } else {
+          if (shouldPlaySound()) {
+            startAlarmSound();
+            speak(t("nowSpeech"));
+          }
+          if (shouldVibrate()) vibrateIfSupported(700);
         }
-        if (shouldVibrate()) vibrateIfSupported(700);
         return;
       }
 
@@ -1863,16 +1983,18 @@
       if (secondsLeft <= 5 && secondsLeft > 0 && lastSpokenCount !== secondsLeft) {
         lastSpokenCount = secondsLeft;
 
-        if (secondsLeft === 1 && preNotifyToggle.checked) {
-          if (shouldPlaySound()) {
-            playPreNotifyBeep();
-            speak(t("preNotifySpeech"));
+        if (!sleepMode) {
+          if (secondsLeft === 1 && preNotifyToggle.checked) {
+            if (shouldPlaySound()) {
+              playPreNotifyBeep();
+              speak(t("preNotifySpeech"));
+            }
+          } else if (shouldPlaySound()) {
+            speak(String(secondsLeft));
           }
-        } else if (shouldPlaySound()) {
-          speak(String(secondsLeft));
-        }
 
-        if (shouldVibrate() && secondsLeft <= 3) vibrateIfSupported(80);
+          if (shouldVibrate() && secondsLeft <= 3) vibrateIfSupported(80);
+        }
       }
     }
 
@@ -1882,7 +2004,20 @@
       backToSetup();
     });
 
-    startBtn.addEventListener("click", startStandby);
+    retryBtn.addEventListener("click", () => {
+      stopAlarmSound();
+      nowOverlay.classList.remove("show");
+      if (lastQuickSeconds !== null) {
+        startQuickTimer(lastQuickSeconds, lastStartOptions);
+      } else {
+        startStandby(lastStartOptions);
+      }
+    });
+
+    startBtn.addEventListener("click", () => {
+      lastQuickSeconds = null;
+      startStandby();
+    });
     cancelBtn.addEventListener("click", () => {
       backToSetup();
       showToast(t("canceledText"));

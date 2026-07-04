@@ -744,6 +744,55 @@ footer {
 
 .call-now-btn:active { transform: scale(0.98); opacity: 0.9; }
 
+.completion-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: -8px;
+}
+
+.completion-row {
+  font-size: 13px;
+  color: var(--sub);
+}
+
+.completion-row span + span {
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.retry-btn {
+  width: auto;
+  min-width: 200px;
+  padding: 15px 26px;
+}
+
+.sleep-badge {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--sub-dim);
+  margin-bottom: 12px;
+}
+
+.now-overlay.sleep-mode {
+  animation: none;
+  background: #000000;
+}
+
+.now-overlay.sleep-mode .now-text {
+  text-shadow: none;
+  color: #58585c;
+  font-size: clamp(48px, 15vw, 92px);
+}
+
+#statusCard.sleep-mode .countdown.warn,
+.focus-view.sleep-mode .countdown.warn {
+  color: #58585c;
+  text-shadow: none;
+}
+
 .toast {
   position: fixed;
   left: 50%;

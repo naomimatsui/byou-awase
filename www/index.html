@@ -153,6 +153,7 @@
     </div>
 
     <div class="card hidden" id="statusCard">
+      <div class="sleep-badge hidden" id="sleepBadge">🔕 <span data-i18n="quietAlertText">静かに通知</span></div>
       <div class="meta-block">
         <div class="meta-row">
           <span data-i18n="baseTimeLabel">基準時刻</span> <span class="value" id="targetDisplay">--:--:--</span>
@@ -176,6 +177,7 @@
   </div>
 
   <div class="focus-view" id="focusView">
+    <div class="sleep-badge hidden" id="focusSleepBadge">🔕 <span data-i18n="quietAlertText">静かに通知</span></div>
     <div class="focus-target" id="focusTarget"></div>
     <div class="countdown-label hidden" id="focusCountdownLabel">開始まで</div>
     <div class="countdown focus-countdown" id="focusCountdown">--</div>
@@ -184,8 +186,14 @@
 
   <div class="now-overlay" id="nowOverlay">
     <div class="now-text" id="nowOverlayText">今！</div>
+    <div class="completion-info" id="completionInfo">
+      <div class="completion-row"><span data-i18n="modeLabel">モード</span>：<span id="completionMode"></span></div>
+      <div class="completion-row"><span data-i18n="targetTimeLabel">目標時刻</span>：<span id="completionTarget"></span></div>
+      <div class="completion-row"><span data-i18n="actualTimeLabel">通知時刻</span>：<span id="completionActual"></span></div>
+    </div>
     <a class="call-now-btn hidden" id="callNowBtn" href="tel:" data-i18n="callNowBtn">📞 電話をかける</a>
-    <button class="close-btn" id="closeOverlayBtn" data-i18n="closeBtn">閉じる</button>
+    <button class="primary-btn retry-btn" id="retryBtn" type="button" data-i18n="retryBtn">もう一度</button>
+    <button class="close-btn" id="closeOverlayBtn" data-i18n="homeBtn">ホームに戻る</button>
   </div>
 
   <div class="toast" id="toast">
