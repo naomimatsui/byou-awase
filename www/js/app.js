@@ -22,6 +22,7 @@ const countdownEl = document.getElementById("countdown");
 const nowOverlay = document.getElementById("nowOverlay");
 const closeOverlayBtn = document.getElementById("closeOverlayBtn");
 const nowClockEl = document.getElementById("nowClock");
+const focusNowClock = document.getElementById("focusNowClock");
 const favLabelInput = document.getElementById("favLabelInput");
 const saveFavBtn = document.getElementById("saveFavBtn");
 const favoritesListEl = document.getElementById("favoritesList");
@@ -264,10 +265,12 @@ function formatCountdownUnit(totalSeconds) {
 
 function renderClock() {
   const now = new Date();
-  nowClockEl.textContent =
+  const timeStr =
     String(now.getHours()).padStart(2, "0") + ":" +
     String(now.getMinutes()).padStart(2, "0") + ":" +
     String(now.getSeconds()).padStart(2, "0");
+  nowClockEl.textContent = timeStr;
+  focusNowClock.textContent = t("nowLabel") + "　" + timeStr;
 }
 
 setInterval(renderClock, 200);

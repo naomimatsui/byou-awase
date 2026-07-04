@@ -502,6 +502,14 @@
     letter-spacing: 0.04em;
   }
 
+  .focus-now-clock {
+    font-variant-numeric: tabular-nums;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--sub);
+    margin-bottom: 4px;
+  }
+
   .focus-countdown {
     font-size: clamp(60px, 22vw, 140px) !important;
   }
@@ -1007,6 +1015,7 @@
 
   <div class="focus-view" id="focusView">
     <div class="sleep-badge hidden" id="focusSleepBadge">🔕 <span data-i18n="quietAlertText">静かに通知</span></div>
+    <div class="focus-now-clock" id="focusNowClock">--:--:--</div>
     <div class="focus-target" id="focusTarget"></div>
     <div class="countdown-label hidden" id="focusCountdownLabel">開始まで</div>
     <div class="countdown focus-countdown" id="focusCountdown">--</div>
@@ -1092,6 +1101,7 @@
     const nowOverlay = document.getElementById("nowOverlay");
     const closeOverlayBtn = document.getElementById("closeOverlayBtn");
     const nowClockEl = document.getElementById("nowClock");
+    const focusNowClock = document.getElementById("focusNowClock");
     const favLabelInput = document.getElementById("favLabelInput");
     const saveFavBtn = document.getElementById("saveFavBtn");
     const favoritesListEl = document.getElementById("favoritesList");
@@ -1151,6 +1161,7 @@
         preset_threads: "🧵 Threads投稿",
         preset_ticket: "🎫 チケット発売",
         preset_live: "🎥 ライブ開始",
+        nowLabel: "現在時刻",
         targetTimeLabel: "目標時刻",
         modeLabel: "モード",
         mode_normal: "⏱ 通常",
@@ -1248,6 +1259,7 @@
         preset_threads: "🧵 Threads",
         preset_ticket: "🎫 Tickets",
         preset_live: "🎥 Live",
+        nowLabel: "Now",
         targetTimeLabel: "Target Time",
         modeLabel: "Mode",
         mode_normal: "⏱ Normal",
@@ -1657,10 +1669,12 @@
 
     function renderClock() {
       const now = new Date();
-      nowClockEl.textContent =
+      const timeStr =
         String(now.getHours()).padStart(2, "0") + ":" +
         String(now.getMinutes()).padStart(2, "0") + ":" +
         String(now.getSeconds()).padStart(2, "0");
+      nowClockEl.textContent = timeStr;
+      focusNowClock.textContent = t("nowLabel") + "　" + timeStr;
     }
 
     setInterval(renderClock, 200);

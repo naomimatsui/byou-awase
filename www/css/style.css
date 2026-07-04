@@ -495,6 +495,14 @@ footer {
   letter-spacing: 0.04em;
 }
 
+.focus-now-clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--sub);
+  margin-bottom: 4px;
+}
+
 .focus-countdown {
   font-size: clamp(60px, 22vw, 140px) !important;
 }
