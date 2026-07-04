@@ -456,7 +456,7 @@ button, .btn {
 }
 
 .countdown.warn {
-  font-size: 104px;
+  font-size: clamp(48px, 15vw, 104px);
   font-weight: 700;
   color: var(--blue);
   text-shadow: 0 0 34px rgba(10, 132, 255, 0.55);

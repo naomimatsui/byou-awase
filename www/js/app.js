@@ -247,6 +247,19 @@ function formatHms(date) {
   );
 }
 
+function formatCountdownUnit(totalSeconds) {
+  if (totalSeconds <= 10) {
+    return currentLang === "en"
+      ? (totalSeconds + " " + t("secUnit"))
+      : (totalSeconds + t("secUnit"));
+  }
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return currentLang === "en"
+    ? (minutes + " " + t("minUnit") + " " + seconds + " " + t("secUnit"))
+    : (minutes + t("minUnit") + seconds + t("secUnit"));
+}
+
 /* ---------- 現在時刻の常時表示 ---------- */
 
 function renderClock() {
@@ -581,14 +594,9 @@ function tick() {
   setCountdownLabelVisible(true);
 
   if (secondsLeft <= 10) {
-    setCountdownDisplay(String(secondsLeft), true);
+    setCountdownDisplay(formatCountdownUnit(secondsLeft), true);
   } else {
-    const minutes = Math.floor(secondsLeft / 60);
-    const seconds = secondsLeft % 60;
-    setCountdownDisplay(
-      String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0"),
-      false
-    );
+    setCountdownDisplay(formatCountdownUnit(secondsLeft), false);
   }
 
   if (secondsLeft <= 5 && secondsLeft > 0 && lastSpokenCount !== secondsLeft) {

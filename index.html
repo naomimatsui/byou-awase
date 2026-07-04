@@ -463,7 +463,7 @@
   }
 
   .countdown.warn {
-    font-size: 104px;
+    font-size: clamp(48px, 15vw, 104px);
     font-weight: 700;
     color: var(--blue);
     text-shadow: 0 0 34px rgba(10, 132, 255, 0.55);
@@ -1189,6 +1189,8 @@
         jitter_custom: "カスタム",
         jitterRangeLabel: "ずらし幅",
         jitterRangeUnit: "秒",
+        secUnit: "秒",
+        minUnit: "分",
         startBtn: "秒合わせ開始",
         favoritesLabel: "お気に入り時刻",
         favLabelPlaceholder: "ラベル（任意）",
@@ -1284,6 +1286,8 @@
         jitter_custom: "Custom",
         jitterRangeLabel: "Shift Range",
         jitterRangeUnit: "sec",
+        secUnit: "sec",
+        minUnit: "min",
         startBtn: "Start Second Sync",
         favoritesLabel: "Favorites",
         favLabelPlaceholder: "Label (optional)",
@@ -1636,6 +1640,19 @@
       );
     }
 
+    function formatCountdownUnit(totalSeconds) {
+      if (totalSeconds <= 10) {
+        return currentLang === "en"
+          ? (totalSeconds + " " + t("secUnit"))
+          : (totalSeconds + t("secUnit"));
+      }
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return currentLang === "en"
+        ? (minutes + " " + t("minUnit") + " " + seconds + " " + t("secUnit"))
+        : (minutes + t("minUnit") + seconds + t("secUnit"));
+    }
+
     /* ---------- 現在時刻の常時表示 ---------- */
 
     function renderClock() {
@@ -1970,14 +1987,9 @@
       setCountdownLabelVisible(true);
 
       if (secondsLeft <= 10) {
-        setCountdownDisplay(String(secondsLeft), true);
+        setCountdownDisplay(formatCountdownUnit(secondsLeft), true);
       } else {
-        const minutes = Math.floor(secondsLeft / 60);
-        const seconds = secondsLeft % 60;
-        setCountdownDisplay(
-          String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0"),
-          false
-        );
+        setCountdownDisplay(formatCountdownUnit(secondsLeft), false);
       }
 
       if (secondsLeft <= 5 && secondsLeft > 0 && lastSpokenCount !== secondsLeft) {
