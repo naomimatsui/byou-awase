@@ -75,7 +75,7 @@ splashScreen.addEventListener("transitionend", () => {
 /* ---------- プリセット ---------- */
 
 const PRESETS = {
-  sleep20: { mode: "normal", notify: "soundVibrate", preNotify: false, jitter: "just", quickSeconds: 20, voiceOnly: true },
+  sleep20: { mode: "normal", notify: "soundVibrate", preNotify: false, jitter: "just", quickSeconds: 20, forceSound: "bell" },
   call: { mode: "call", notify: "soundVibrate", preNotify: true, jitter: "just" },
   line: { mode: "line", notify: "soundVibrate", preNotify: true, jitter: "5" },
   threads: { mode: "threads", notify: "soundVibrate", preNotify: true, jitter: "5" },
@@ -96,7 +96,7 @@ presetButtons.forEach((btn) => {
     saveSettings();
 
     if (preset.quickSeconds) {
-      startQuickTimer(preset.quickSeconds, { voiceOnly: !!preset.voiceOnly });
+      startQuickTimer(preset.quickSeconds, { forceSound: preset.forceSound });
     }
   });
 });
@@ -264,7 +264,7 @@ let timer = null;
 let lastSpokenCount = null;
 let alarmLoopId = null;
 let audioContext = null;
-let voiceOnlyMode = false;
+let forcedSoundStyle = null;
 
 function unlockAudio() {
   if (!audioContext) {
@@ -314,7 +314,7 @@ function playNotifySound(style) {
 }
 
 function startAlarmSound() {
-  const style = notifySoundSelect.value;
+  const style = forcedSoundStyle || notifySoundSelect.value;
   playNotifySound(style);
   alarmLoopId = setInterval(() => playNotifySound(style), 1400);
 }
@@ -380,7 +380,7 @@ function setCountdownLabelVisible(visible) {
 function startStandby(options) {
   unlockAudio();
 
-  voiceOnlyMode = !!(options && options.voiceOnly);
+  forcedSoundStyle = (options && options.forceSound) || null;
 
   const hour = Number(hourSelect.value);
   const minute = Number(minuteSelect.value);
@@ -474,7 +474,7 @@ function tick() {
     nowOverlayText.textContent = zeroText;
     nowOverlay.classList.add("show");
     if (shouldPlaySound()) {
-      if (!voiceOnlyMode) startAlarmSound();
+      startAlarmSound();
       speak(t("nowSpeech"));
     }
     if (shouldVibrate()) vibrateIfSupported(700);
