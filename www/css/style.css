@@ -236,6 +236,23 @@ header .usecase {
 
 .select-field:focus { outline: none; border-color: var(--blue); }
 
+#phoneNumberInput {
+  width: 100%;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--card-soft);
+  color: var(--ink);
+  outline: none;
+}
+
+#phoneNumberInput:focus { border-color: var(--blue); }
+#phoneNumberInput::placeholder { color: var(--sub-dim); }
+
 .time-row { display: flex; align-items: center; gap: 8px; }
 
 .time-row select {
@@ -687,4 +704,73 @@ footer {
   color: var(--sub);
   font-size: 20px;
   padding: 4px 8px;
+}
+
+.running-indicator {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.running-indicator:active { transform: none; }
+
+.cancel-btn {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fff;
+  padding: 16px;
+  border-radius: 16px;
+  background: #ff3b30;
+  margin-top: 10px;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.cancel-btn:active { transform: scale(0.98); opacity: 0.85; }
+
+.call-now-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--blue);
+  padding: 16px 30px;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(10, 132, 255, 0.4);
+}
+
+.call-now-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(100px + env(safe-area-inset-bottom));
+  transform: translateX(-50%) translateY(10px);
+  z-index: 1600;
+  max-width: 320px;
+  width: calc(100% - 40px);
+  background: var(--card);
+  border: 1px solid var(--blue);
+  border-radius: 14px;
+  padding: 14px 18px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.toast p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }

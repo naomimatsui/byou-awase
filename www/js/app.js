@@ -39,6 +39,27 @@ const focusCountdownLabel = document.getElementById("focusCountdownLabel");
 const nowOverlayText = document.getElementById("nowOverlayText");
 const presetButtons = document.querySelectorAll(".preset-btn");
 const splashScreen = document.getElementById("splashScreen");
+const phoneNumberField = document.getElementById("phoneNumberField");
+const runningIndicator = document.getElementById("runningIndicator");
+const callNowBtn = document.getElementById("callNowBtn");
+const toast = document.getElementById("toast");
+const toastText = document.getElementById("toastText");
+
+let toastTimer = null;
+
+function showToast(text) {
+  toastText.textContent = text;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 2500);
+}
+
+function updatePhoneFieldVisibility() {
+  phoneNumberField.classList.toggle("hidden", modeSelect.value !== "call");
+}
+
+updatePhoneFieldVisibility();
+modeSelect.addEventListener("change", updatePhoneFieldVisibility);
 
 function fillSelect(select, max) {
   for (let i = 0; i < max; i++) {
@@ -93,6 +114,7 @@ presetButtons.forEach((btn) => {
     preNotifyToggle.checked = preset.preNotify;
     jitterPresetSelect.value = preset.jitter;
     jitterRangeRow.classList.toggle("hidden", preset.jitter !== "custom");
+    updatePhoneFieldVisibility();
     saveSettings();
 
     if (preset.quickSeconds) {
@@ -265,6 +287,7 @@ let lastSpokenCount = null;
 let alarmLoopId = null;
 let audioContext = null;
 let forcedSoundStyle = null;
+let isAlarmRunning = false;
 
 function unlockAudio() {
   if (!audioContext) {
@@ -378,8 +401,14 @@ function setCountdownLabelVisible(visible) {
 }
 
 function startStandby(options) {
+  if (isAlarmRunning) {
+    showToast(t("alreadyRunningText"));
+    return;
+  }
+
   unlockAudio();
 
+  isAlarmRunning = true;
   forcedSoundStyle = (options && options.forceSound) || null;
 
   const hour = Number(hourSelect.value);
@@ -454,10 +483,12 @@ function backToSetup() {
   stopAlarmSound();
   speechSynthesis.cancel();
   nowOverlay.classList.remove("show");
+  callNowBtn.classList.add("hidden");
   exitFocusMode();
   setCountdownDisplay("--", false);
   setCountdownLabelVisible(false);
   jitterInfoRow.classList.add("hidden");
+  isAlarmRunning = false;
   statusCard.classList.add("hidden");
   setupCard.classList.remove("hidden");
 }
@@ -468,10 +499,20 @@ function tick() {
 
   if (diff <= 0) {
     clearInterval(timer);
+    isAlarmRunning = false;
     const zeroText = getModeIcon(modeSelect.value) + " " + getZeroText(modeSelect.value);
     setCountdownDisplay(zeroText, false);
     setCountdownLabelVisible(false);
     nowOverlayText.textContent = zeroText;
+
+    const cleanPhone = phoneNumberInput.value.trim().replace(/[^0-9+]/g, "");
+    if (modeSelect.value === "call" && cleanPhone) {
+      callNowBtn.href = "tel:" + cleanPhone;
+      callNowBtn.classList.remove("hidden");
+    } else {
+      callNowBtn.classList.add("hidden");
+    }
+
     nowOverlay.classList.add("show");
     if (shouldPlaySound()) {
       startAlarmSound();
@@ -518,6 +559,9 @@ closeOverlayBtn.addEventListener("click", () => {
 });
 
 startBtn.addEventListener("click", startStandby);
-cancelBtn.addEventListener("click", backToSetup);
+cancelBtn.addEventListener("click", () => {
+  backToSetup();
+  showToast(t("canceledText"));
+});
 
 renderFavorites();

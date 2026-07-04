@@ -17,6 +17,7 @@ const preNotifyToggle = document.getElementById("preNotifyToggle");
 const jitterPresetSelect = document.getElementById("jitterPresetSelect");
 const jitterRangeRow = document.getElementById("jitterRangeRow");
 const jitterRangeInput = document.getElementById("jitterRangeInput");
+const phoneNumberInput = document.getElementById("phoneNumberInput");
 
 const SETTINGS_HINT_KEY = "byouAwaseSettingsHintSeen";
 
@@ -57,7 +58,8 @@ function saveSettings() {
     jitterPreset: jitterPresetSelect.value,
     jitterRange: Number(jitterRangeInput.value) || 15,
     notifySound: notifySoundSelect.value,
-    lang: langSelect.value
+    lang: langSelect.value,
+    phoneNumber: phoneNumberInput.value.trim()
   }));
 }
 
@@ -73,6 +75,7 @@ function loadSettings() {
     if (s.jitterRange) jitterRangeInput.value = s.jitterRange;
     if (s.notifySound) notifySoundSelect.value = s.notifySound;
     if (s.lang) currentLang = s.lang;
+    if (s.phoneNumber) phoneNumberInput.value = s.phoneNumber;
     jitterRangeRow.classList.toggle("hidden", jitterPresetSelect.value !== "custom");
   } catch (err) {
     // keep defaults
@@ -80,6 +83,7 @@ function loadSettings() {
 }
 
 notifySoundSelect.addEventListener("change", saveSettings);
+phoneNumberInput.addEventListener("input", saveSettings);
 
 langSelect.addEventListener("change", () => {
   applyLanguage(langSelect.value);

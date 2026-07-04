@@ -76,6 +76,11 @@
         </select>
       </div>
 
+      <div class="field hidden" id="phoneNumberField">
+        <label data-i18n="phoneNumberLabel">電話番号（任意）</label>
+        <input type="tel" id="phoneNumberInput" inputmode="tel" data-i18n-placeholder="phoneNumberPlaceholder" placeholder="例: 090-xxxx-xxxx" />
+      </div>
+
       <div class="field">
         <label data-i18n="notifyLabel">通知方法</label>
         <select class="select-field" id="notifyModeSelect">
@@ -162,8 +167,9 @@
         <div class="countdown" id="countdown">--</div>
       </div>
 
+      <button class="primary-btn running-indicator" id="runningIndicator" type="button" disabled data-i18n="runningBtn">秒合わせ中</button>
       <button class="outline-btn" id="focusBtn" data-i18n="focusModeBtn">全画面モード</button>
-      <button class="secondary-btn" id="cancelBtn" data-i18n="backBtn">設定に戻る</button>
+      <button class="cancel-btn" id="cancelBtn" data-i18n="cancelBtn">キャンセル</button>
     </div>
 
     <footer id="footerText" data-i18n="footer">BYOU AWASE</footer>
@@ -178,7 +184,12 @@
 
   <div class="now-overlay" id="nowOverlay">
     <div class="now-text" id="nowOverlayText">今！</div>
+    <a class="call-now-btn hidden" id="callNowBtn" href="tel:" data-i18n="callNowBtn">📞 電話をかける</a>
     <button class="close-btn" id="closeOverlayBtn" data-i18n="closeBtn">閉じる</button>
+  </div>
+
+  <div class="toast" id="toast">
+    <p id="toastText"></p>
   </div>
 
   <div class="settings-hint" id="settingsHint">

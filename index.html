@@ -243,6 +243,23 @@
 
   .select-field:focus { outline: none; border-color: var(--blue); }
 
+  #phoneNumberInput {
+    width: 100%;
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--card-soft);
+    color: var(--ink);
+    outline: none;
+  }
+
+  #phoneNumberInput:focus { border-color: var(--blue); }
+  #phoneNumberInput::placeholder { color: var(--sub-dim); }
+
   .time-row { display: flex; align-items: center; gap: 8px; }
 
   .time-row select {
@@ -698,6 +715,75 @@
     font-size: 20px;
     padding: 4px 8px;
   }
+
+  .running-indicator {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  .running-indicator:active { transform: none; }
+
+  .cancel-btn {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: #fff;
+    padding: 16px;
+    border-radius: 16px;
+    background: #ff3b30;
+    margin-top: 10px;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+  }
+
+  .cancel-btn:active { transform: scale(0.98); opacity: 0.85; }
+
+  .call-now-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--blue);
+    padding: 16px 30px;
+    border-radius: 999px;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(10, 132, 255, 0.4);
+  }
+
+  .call-now-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(100px + env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(10px);
+    z-index: 1600;
+    max-width: 320px;
+    width: calc(100% - 40px);
+    background: var(--card);
+    border: 1px solid var(--blue);
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  .toast p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 </style>
 </head>
 
@@ -768,6 +854,11 @@
           <option value="ticket" data-i18n="mode_ticket">🎫 チケット</option>
           <option value="live" data-i18n="mode_live">🎥 ライブ開始</option>
         </select>
+      </div>
+
+      <div class="field hidden" id="phoneNumberField">
+        <label data-i18n="phoneNumberLabel">電話番号（任意）</label>
+        <input type="tel" id="phoneNumberInput" inputmode="tel" data-i18n-placeholder="phoneNumberPlaceholder" placeholder="例: 090-xxxx-xxxx" />
       </div>
 
       <div class="field">
@@ -856,8 +947,9 @@
         <div class="countdown" id="countdown">--</div>
       </div>
 
+      <button class="primary-btn running-indicator" id="runningIndicator" type="button" disabled data-i18n="runningBtn">秒合わせ中</button>
       <button class="outline-btn" id="focusBtn" data-i18n="focusModeBtn">全画面モード</button>
-      <button class="secondary-btn" id="cancelBtn" data-i18n="backBtn">設定に戻る</button>
+      <button class="cancel-btn" id="cancelBtn" data-i18n="cancelBtn">キャンセル</button>
     </div>
 
     <footer id="footerText" data-i18n="footer">BYOU AWASE</footer>
@@ -872,7 +964,12 @@
 
   <div class="now-overlay" id="nowOverlay">
     <div class="now-text" id="nowOverlayText">今！</div>
+    <a class="call-now-btn hidden" id="callNowBtn" href="tel:" data-i18n="callNowBtn">📞 電話をかける</a>
     <button class="close-btn" id="closeOverlayBtn" data-i18n="closeBtn">閉じる</button>
+  </div>
+
+  <div class="toast" id="toast">
+    <p id="toastText"></p>
   </div>
 
   <div class="settings-hint" id="settingsHint">
@@ -968,6 +1065,12 @@
     const settingsCloseBtn = document.getElementById("settingsCloseBtn");
     const notifySoundSelect = document.getElementById("notifySoundSelect");
     const langSelect = document.getElementById("langSelect");
+    const phoneNumberField = document.getElementById("phoneNumberField");
+    const phoneNumberInput = document.getElementById("phoneNumberInput");
+    const runningIndicator = document.getElementById("runningIndicator");
+    const callNowBtn = document.getElementById("callNowBtn");
+    const toast = document.getElementById("toast");
+    const toastText = document.getElementById("toastText");
 
     /* ---------- 多言語データ ---------- */
 
@@ -997,6 +1100,9 @@
         notify_soundOnly: "音のみ",
         notify_vibrateOnly: "バイブのみ",
         notify_silent: "サイレント（画面表示のみ）",
+        phoneNumberLabel: "電話番号（任意）",
+        phoneNumberPlaceholder: "例: 090-xxxx-xxxx",
+        callNowBtn: "電話をかける",
         preNotifyLabel: "1秒前に予告する",
         preNotifyDesc: "予約電話・チケット・LINE送信・Threads投稿などで、1秒前に短い音とアナウンスでお知らせします。",
         quickStartHeader: "⚡ クイックスタート",
@@ -1031,7 +1137,10 @@
         countdownLabelText: "開始まで",
         standbyText: "待機中",
         focusModeBtn: "全画面モード",
-        backBtn: "設定に戻る",
+        runningBtn: "秒合わせ中",
+        cancelBtn: "キャンセル",
+        canceledText: "キャンセルしました",
+        alreadyRunningText: "すでに秒合わせ中です。キャンセルしてから再設定してください。",
         closeBtn: "閉じる",
         endBtn: "終了",
         footer: "BYOU AWASE",
@@ -1082,6 +1191,9 @@
         notify_soundOnly: "Sound Only",
         notify_vibrateOnly: "Vibration Only",
         notify_silent: "Silent (Display Only)",
+        phoneNumberLabel: "Phone Number (Optional)",
+        phoneNumberPlaceholder: "e.g. 090-xxxx-xxxx",
+        callNowBtn: "Call Now",
         preNotifyLabel: "1-Second Warning",
         preNotifyDesc: "For calls, tickets, LINE, Threads and more — get a short sound and announcement 1 second before.",
         quickStartHeader: "⚡ Quick Start",
@@ -1116,7 +1228,10 @@
         countdownLabelText: "Starting in",
         standbyText: "Standby",
         focusModeBtn: "Fullscreen Mode",
-        backBtn: "Back to Setup",
+        runningBtn: "Second Sync Running",
+        cancelBtn: "Cancel",
+        canceledText: "Canceled",
+        alreadyRunningText: "Second Sync is already running. Please cancel it before setting a new one.",
         closeBtn: "Close",
         endBtn: "End",
         footer: "SECOND SYNC",
@@ -1256,7 +1371,8 @@
         jitterPreset: jitterPresetSelect.value,
         jitterRange: Number(jitterRangeInput.value) || 15,
         notifySound: notifySoundSelect.value,
-        lang: langSelect.value
+        lang: langSelect.value,
+        phoneNumber: phoneNumberInput.value.trim()
       }));
     }
 
@@ -1272,6 +1388,7 @@
         if (s.jitterRange) jitterRangeInput.value = s.jitterRange;
         if (s.notifySound) notifySoundSelect.value = s.notifySound;
         if (s.lang) currentLang = s.lang;
+        if (s.phoneNumber) phoneNumberInput.value = s.phoneNumber;
         jitterRangeRow.classList.toggle("hidden", jitterPresetSelect.value !== "custom");
       } catch (err) {
         // keep defaults
@@ -1279,6 +1396,23 @@
     }
 
     loadSettings();
+
+    function updatePhoneFieldVisibility() {
+      phoneNumberField.classList.toggle("hidden", modeSelect.value !== "call");
+    }
+
+    updatePhoneFieldVisibility();
+    modeSelect.addEventListener("change", updatePhoneFieldVisibility);
+    phoneNumberInput.addEventListener("input", saveSettings);
+
+    let toastTimer = null;
+
+    function showToast(text) {
+      toastText.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2500);
+    }
 
     [modeSelect, notifyModeSelect, jitterPresetSelect, jitterRangeInput].forEach((el) => {
       el.addEventListener("change", saveSettings);
@@ -1306,6 +1440,7 @@
         preNotifyToggle.checked = preset.preNotify;
         jitterPresetSelect.value = preset.jitter;
         jitterRangeRow.classList.toggle("hidden", preset.jitter !== "custom");
+        updatePhoneFieldVisibility();
         saveSettings();
 
         if (preset.quickSeconds) {
@@ -1476,6 +1611,7 @@
     let alarmLoopId = null;
     let audioContext = null;
     let forcedSoundStyle = null;
+    let isAlarmRunning = false;
 
     function unlockAudio() {
       if (!audioContext) {
@@ -1589,8 +1725,14 @@
     }
 
     function startStandby(options) {
+      if (isAlarmRunning) {
+        showToast(t("alreadyRunningText"));
+        return;
+      }
+
       unlockAudio();
 
+      isAlarmRunning = true;
       forcedSoundStyle = (options && options.forceSound) || null;
 
       const hour = Number(hourSelect.value);
@@ -1665,10 +1807,12 @@
       stopAlarmSound();
       speechSynthesis.cancel();
       nowOverlay.classList.remove("show");
+      callNowBtn.classList.add("hidden");
       exitFocusMode();
       setCountdownDisplay("--", false);
       setCountdownLabelVisible(false);
       jitterInfoRow.classList.add("hidden");
+      isAlarmRunning = false;
       statusCard.classList.add("hidden");
       setupCard.classList.remove("hidden");
     }
@@ -1679,10 +1823,20 @@
 
       if (diff <= 0) {
         clearInterval(timer);
+        isAlarmRunning = false;
         const zeroText = getModeIcon(modeSelect.value) + " " + getZeroText(modeSelect.value);
         setCountdownDisplay(zeroText, false);
         setCountdownLabelVisible(false);
         nowOverlayText.textContent = zeroText;
+
+        const cleanPhone = phoneNumberInput.value.trim().replace(/[^0-9+]/g, "");
+        if (modeSelect.value === "call" && cleanPhone) {
+          callNowBtn.href = "tel:" + cleanPhone;
+          callNowBtn.classList.remove("hidden");
+        } else {
+          callNowBtn.classList.add("hidden");
+        }
+
         nowOverlay.classList.add("show");
         if (shouldPlaySound()) {
           startAlarmSound();
@@ -1729,7 +1883,10 @@
     });
 
     startBtn.addEventListener("click", startStandby);
-    cancelBtn.addEventListener("click", backToSetup);
+    cancelBtn.addEventListener("click", () => {
+      backToSetup();
+      showToast(t("canceledText"));
+    });
 
     applyLanguage(currentLang);
   </script>
