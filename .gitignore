@@ -1,0 +1,18 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Capacitor native platforms (added later via `npx cap add ios/android`)
+# Keep these tracked once added — only ignore their build artifacts:
+ios/App/Pods/
+ios/App/build/
+ios/App/DerivedData/
+ios/.build/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
