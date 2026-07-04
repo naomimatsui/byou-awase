@@ -576,25 +576,79 @@
   }
 
   /* 設定ボタン・設定画面 */
-  .settings-fab {
+  .settings-fab-wrap {
     position: fixed;
     right: 20px;
     bottom: calc(24px + env(safe-area-inset-bottom));
-    width: 56px;
-    height: 56px;
+    z-index: 400;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .settings-fab-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--blue);
+    background: rgba(28, 28, 30, 0.85);
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+
+  .settings-fab {
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     background: var(--card);
-    border: 1px solid var(--line);
+    border: 1.5px solid var(--blue);
     color: var(--ink);
-    font-size: 22px;
+    font-size: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
-    z-index: 400;
+    animation: fab-glow 2.4s ease-in-out infinite;
   }
 
   .settings-fab:active { transform: scale(0.95); }
+
+  @keyframes fab-glow {
+    0%, 100% { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 0 0 rgba(10, 132, 255, 0.35); }
+    50% { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 0 8px rgba(10, 132, 255, 0); }
+  }
+
+  .settings-hint {
+    position: fixed;
+    right: 20px;
+    bottom: calc(94px + env(safe-area-inset-bottom));
+    z-index: 401;
+    max-width: 220px;
+    background: var(--card);
+    border: 1px solid var(--blue);
+    border-radius: 14px;
+    padding: 12px 14px;
+    box-shadow: var(--shadow);
+    transition: opacity 0.3s ease;
+  }
+
+  .settings-hint p {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .settings-hint {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .settings-hint.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
 
   .settings-overlay {
     display: none;
@@ -821,7 +875,14 @@
     <button class="close-btn" id="closeOverlayBtn" data-i18n="closeBtn">閉じる</button>
   </div>
 
-  <button class="settings-fab" id="settingsFab" type="button" aria-label="Settings">⚙️</button>
+  <div class="settings-hint" id="settingsHint">
+    <p data-i18n="settingsHintText">右下の⚙から言語・通知音を変更できます</p>
+  </div>
+
+  <div class="settings-fab-wrap">
+    <div class="settings-fab-label" data-i18n="settingsFabLabel">設定</div>
+    <button class="settings-fab" id="settingsFab" type="button" aria-label="Settings">⚙️</button>
+  </div>
 
   <div class="settings-overlay" id="settingsOverlay">
     <div class="settings-panel">
@@ -902,6 +963,7 @@
     const splashScreen = document.getElementById("splashScreen");
     const splashEn = document.getElementById("splashEn");
     const settingsFab = document.getElementById("settingsFab");
+    const settingsHint = document.getElementById("settingsHint");
     const settingsOverlay = document.getElementById("settingsOverlay");
     const settingsCloseBtn = document.getElementById("settingsCloseBtn");
     const notifySoundSelect = document.getElementById("notifySoundSelect");
@@ -974,6 +1036,8 @@
         endBtn: "終了",
         footer: "BYOU AWASE",
         settingsTitle: "設定",
+        settingsFabLabel: "設定",
+        settingsHintText: "右下の⚙から言語・通知音を変更できます",
         soundLabel: "通知音",
         sound_beep: "ピッ",
         sound_pon: "ポン",
@@ -1057,6 +1121,8 @@
         endBtn: "End",
         footer: "SECOND SYNC",
         settingsTitle: "Settings",
+        settingsFabLabel: "Settings",
+        settingsHintText: "Tap ⚙ in the bottom right to change language and sound.",
         soundLabel: "Sound",
         sound_beep: "Beep",
         sound_pon: "Pon",
@@ -1147,8 +1213,23 @@
 
     /* ---------- 設定画面 ---------- */
 
+    const SETTINGS_HINT_KEY = "byouAwaseSettingsHintSeen";
+
+    if (!localStorage.getItem(SETTINGS_HINT_KEY)) {
+      setTimeout(() => {
+        settingsHint.classList.add("show");
+        localStorage.setItem(SETTINGS_HINT_KEY, "1");
+        setTimeout(() => settingsHint.classList.remove("show"), 6000);
+      }, 2300);
+    }
+
+    settingsHint.addEventListener("click", () => {
+      settingsHint.classList.remove("show");
+    });
+
     settingsFab.addEventListener("click", () => {
       settingsOverlay.classList.add("show");
+      settingsHint.classList.remove("show");
     });
 
     settingsCloseBtn.addEventListener("click", () => {

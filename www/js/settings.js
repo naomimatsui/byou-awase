@@ -6,6 +6,7 @@
  */
 
 const settingsFab = document.getElementById("settingsFab");
+const settingsHint = document.getElementById("settingsHint");
 const settingsOverlay = document.getElementById("settingsOverlay");
 const settingsCloseBtn = document.getElementById("settingsCloseBtn");
 const notifySoundSelect = document.getElementById("notifySoundSelect");
@@ -17,8 +18,23 @@ const jitterPresetSelect = document.getElementById("jitterPresetSelect");
 const jitterRangeRow = document.getElementById("jitterRangeRow");
 const jitterRangeInput = document.getElementById("jitterRangeInput");
 
+const SETTINGS_HINT_KEY = "byouAwaseSettingsHintSeen";
+
+if (!localStorage.getItem(SETTINGS_HINT_KEY)) {
+  setTimeout(() => {
+    settingsHint.classList.add("show");
+    localStorage.setItem(SETTINGS_HINT_KEY, "1");
+    setTimeout(() => settingsHint.classList.remove("show"), 6000);
+  }, 2300);
+}
+
+settingsHint.addEventListener("click", () => {
+  settingsHint.classList.remove("show");
+});
+
 settingsFab.addEventListener("click", () => {
   settingsOverlay.classList.add("show");
+  settingsHint.classList.remove("show");
 });
 
 settingsCloseBtn.addEventListener("click", () => {
