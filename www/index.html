@@ -48,9 +48,9 @@
           <input type="number" id="sleepSecInput" min="1" max="3600" step="1" value="20" inputmode="numeric"
                  aria-label="寝る秒数"
                  style="width:5.5em;padding:10px 8px;border-radius:12px;border:1px solid #2f3a44;background:#151a20;color:#e8eaed;font-size:16px;text-align:center;">
-          <button class="preset-btn" type="button" data-preset="call" data-i18n="preset_call">📞 予約電話</button>
-          <button class="preset-btn" type="button" data-preset="post" data-i18n="preset_post">💬 投稿・配信</button>
           <button class="preset-btn" type="button" data-preset="ticket" data-i18n="preset_ticket">🎫 チケット発売</button>
+          <button class="preset-btn" type="button" data-preset="post" data-i18n="preset_post">💬 投稿・配信</button>
+          <button class="preset-btn" type="button" data-preset="call" data-i18n="preset_call">📞 予約電話</button>
         </div>
       </div>
 
@@ -91,31 +91,6 @@
       </div>
 
       <div class="field">
-        <div class="toggle-row">
-          <label data-i18n="preNotifyLabel">1秒前に予告する</label>
-          <label class="switch">
-            <input type="checkbox" id="preNotifyToggle" />
-            <span class="slider"></span>
-          </label>
-        </div>
-        <p class="jitter-desc" data-i18n="preNotifyDesc">予約電話・チケット・LINE送信・Threads投稿などで、1秒前に短い音とアナウンスでお知らせします。</p>
-      </div>
-
-      <div class="field">
-        <label data-i18n="quickStartFieldLabel">あと○秒で開始</label>
-        <div class="quick-row">
-          <button class="quick-btn" type="button" data-seconds="1" data-i18n="quick_1">あと1秒</button>
-          <button class="quick-btn" type="button" data-seconds="3" data-i18n="quick_3">あと3秒</button>
-          <button class="quick-btn" type="button" data-seconds="5" data-i18n="quick_5">あと5秒</button>
-          <button class="quick-btn" type="button" data-seconds="10" data-i18n="quick_10">あと10秒</button>
-          <button class="quick-btn" type="button" data-seconds="20" data-i18n="quick_20">あと20秒</button>
-          <button class="quick-btn" type="button" data-seconds="30" data-i18n="quick_30">あと30秒</button>
-          <button class="quick-btn" type="button" data-seconds="45" data-i18n="quick_45">あと45秒</button>
-          <button class="quick-btn" type="button" data-seconds="60" data-i18n="quick_60">あと1分</button>
-        </div>
-      </div>
-
-      <div class="field">
         <label data-i18n="jitterLabel">自然送信アシスト</label>
         <p class="jitter-desc" data-i18n="jitterDesc">毎回ぴったり同じ時刻にならないように、数秒だけ自然にずらします。</p>
         <select class="select-field" id="jitterPresetSelect">
@@ -135,6 +110,33 @@
       </div>
 
       <button class="primary-btn" id="startBtn" data-i18n="startBtn">秒合わせ開始</button>
+
+      <!-- 2026-07-23：本人要望で「1秒前に予告する」と「あと○秒で開始」を開始ボタンより下に移動。
+           毎回いじる設定は上、たまにしか触らない設定は下。 -->
+      <div class="field">
+        <div class="toggle-row">
+          <label data-i18n="preNotifyLabel">1秒前に予告する</label>
+          <label class="switch">
+            <input type="checkbox" id="preNotifyToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <p class="jitter-desc" data-i18n="preNotifyDesc">予約電話・チケット発売・投稿・配信などで、1秒前に短い音とアナウンスでお知らせします。</p>
+      </div>
+
+      <div class="field">
+        <label data-i18n="quickStartFieldLabel">あと○秒で開始</label>
+        <div class="quick-row">
+          <button class="quick-btn" type="button" data-seconds="1" data-i18n="quick_1">あと1秒</button>
+          <button class="quick-btn" type="button" data-seconds="3" data-i18n="quick_3">あと3秒</button>
+          <button class="quick-btn" type="button" data-seconds="5" data-i18n="quick_5">あと5秒</button>
+          <button class="quick-btn" type="button" data-seconds="10" data-i18n="quick_10">あと10秒</button>
+          <button class="quick-btn" type="button" data-seconds="20" data-i18n="quick_20">あと20秒</button>
+          <button class="quick-btn" type="button" data-seconds="30" data-i18n="quick_30">あと30秒</button>
+          <button class="quick-btn" type="button" data-seconds="45" data-i18n="quick_45">あと45秒</button>
+          <button class="quick-btn" type="button" data-seconds="60" data-i18n="quick_60">あと1分</button>
+        </div>
+      </div>
 
       <div class="favorites-block">
         <label data-i18n="favoritesLabel">お気に入り時刻</label>
