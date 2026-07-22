@@ -17,13 +17,12 @@ version live and unchanged.
 ## Project structure
 
 ```
-index.html            <- the original single-file web app (GitHub Pages).
-                          Untouched by the Capacitor work below; this stays
-                          live at https://<user>.github.io/byou-awase/.
+index.html            <- ENTRY POINT ONLY. Redirects to www/.
+                          Do NOT add features here (see below).
 
-www/                  <- Capacitor's webDir. Same app, split into
-                          maintainable files. This is the version that
-                          gets wrapped into the iOS/Android app.
+www/                  <- THE SINGLE SOURCE OF TRUTH. Capacitor's webDir,
+                          and what GitHub Pages ends up serving via the
+                          redirect above. Edit the app here.
   index.html
   css/
     style.css
@@ -45,21 +44,35 @@ capacitor.config.json    <- appId / appName / webDir
 package.json             <- Capacitor CLI + platform dependencies
 ```
 
-### Why two copies of the app?
+### ⚠️ One source of truth: `www/` (resolved 2026-07-22)
 
-`index.html` at the repo root is the currently-published web app and
-is left exactly as-is so the live GitHub Pages URL keeps working.
-`www/` is the same functionality, reorganized into separate
-CSS/JS/data files so it can be:
+There used to be **two full copies of the app**: a 66 KB single-file
+version at the repo root, and the split version under `www/`. Both
+contained the same screen, so a change made in one silently left the
+other stale — the web version and the app version could drift apart
+without anyone noticing.
 
-1. Maintained more easily (one concern per file), and
-2. Wrapped as a native iOS/Android app via Capacitor, whose `webDir`
-   config points at `www/`.
+That is fixed. The root `index.html` is now a small redirect to
+`www/`, so:
 
-Going forward, new features should be built in `www/`. If/when it's
-worth retiring the duplicate, the root `index.html` can be replaced
-with a redirect to `www/`, or GitHub Pages can be pointed at `www/`
-directly — that's a later decision, not made here.
+- **Capacitor (iOS/Android)** builds from `www/` (`webDir: "www"`).
+- **GitHub Pages** still works at
+  `https://<user>.github.io/byou-awase/` — it just forwards to
+  `./www/`.
+
+**Edit the app in `www/` only.**
+
+| What to change | File |
+|---|---|
+| Screen markup | `www/index.html` |
+| Styling | `www/css/style.css` |
+| Behaviour (countdown, presets, favorites) | `www/js/app.js` |
+| Japanese / English wording | `www/js/i18n.js` |
+
+🚫 **Never add functionality back into the root `index.html`.** That
+is what created the duplication in the first place. The previous
+single-file version is preserved in git history (commit `538a938` and
+earlier) if it is ever needed.
 
 ## Getting the native app running (next steps, needs Node + Xcode)
 
