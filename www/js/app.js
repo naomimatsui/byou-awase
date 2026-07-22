@@ -52,6 +52,45 @@ const completionActual = document.getElementById("completionActual");
 const retryBtn = document.getElementById("retryBtn");
 const sleepBadge = document.getElementById("sleepBadge");
 const focusSleepBadge = document.getElementById("focusSleepBadge");
+const sleepSecInput = document.getElementById("sleepSecInput");
+const sleepSecView = document.getElementById("sleepSecView");
+
+/* ---------- 寝る秒数（人によって違うので選べるようにする） ---------- */
+
+const SLEEP_SEC_KEY = "byouAwaseSleepSeconds";
+const SLEEP_SEC_DEFAULT = 20;
+
+function getSleepSeconds() {
+  const n = parseInt(sleepSecInput ? sleepSecInput.value : "", 10);
+  if (!Number.isFinite(n) || n < 1) return SLEEP_SEC_DEFAULT;
+  return Math.min(n, 3600);
+}
+
+function renderSleepSeconds() {
+  const n = getSleepSeconds();
+  if (sleepSecView) sleepSecView.textContent = String(n);
+}
+
+function loadSleepSeconds() {
+  let n = SLEEP_SEC_DEFAULT;
+  try {
+    const saved = parseInt(localStorage.getItem(SLEEP_SEC_KEY) || "", 10);
+    if (Number.isFinite(saved) && saved >= 1) n = Math.min(saved, 3600);
+  } catch (e) {}
+  if (sleepSecInput) sleepSecInput.value = String(n);
+  renderSleepSeconds();
+}
+
+if (sleepSecInput) {
+  sleepSecInput.addEventListener("input", () => {
+    renderSleepSeconds();
+    try {
+      localStorage.setItem(SLEEP_SEC_KEY, String(getSleepSeconds()));
+    } catch (e) {}
+  });
+}
+
+loadSleepSeconds();
 
 let toastTimer = null;
 
@@ -104,7 +143,7 @@ splashScreen.addEventListener("transitionend", () => {
 /* ---------- プリセット ---------- */
 
 const PRESETS = {
-  sleep20: { mode: "normal", notify: "vibrateOnly", preNotify: false, jitter: "just", quickSeconds: 20, sleepMode: true },
+  sleep20: { mode: "normal", notify: "vibrateOnly", preNotify: false, jitter: "just", useSleepSeconds: true, sleepMode: true },
   call: { mode: "call", notify: "soundVibrate", preNotify: true, jitter: "just" },
   line: { mode: "line", notify: "soundVibrate", preNotify: true, jitter: "5" },
   threads: { mode: "threads", notify: "soundVibrate", preNotify: true, jitter: "5" },
@@ -125,8 +164,9 @@ presetButtons.forEach((btn) => {
     updatePhoneFieldVisibility();
     saveSettings();
 
-    if (preset.quickSeconds) {
-      startQuickTimer(preset.quickSeconds, { forceSound: preset.forceSound, sleepMode: !!preset.sleepMode });
+    const seconds = preset.useSleepSeconds ? getSleepSeconds() : preset.quickSeconds;
+    if (seconds) {
+      startQuickTimer(seconds, { forceSound: preset.forceSound, sleepMode: !!preset.sleepMode });
     }
   });
 });
