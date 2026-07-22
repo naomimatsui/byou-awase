@@ -68,7 +68,12 @@ function loadSettings() {
     const raw = localStorage.getItem(SETTINGS_KEY);
     if (!raw) return;
     const s = JSON.parse(raw);
-    if (s.mode) modeSelect.value = s.mode;
+    /* 2026-07-22：LINE送信 / Threads投稿 / ライブ開始 を「投稿・配信」に統合した。
+       統合前の設定が端末に残っていると選択肢が見つからず空になるため、post に読み替える。 */
+    if (s.mode) {
+      const merged = { line: "post", threads: "post", live: "post" };
+      modeSelect.value = merged[s.mode] || s.mode;
+    }
     if (s.notify) notifyModeSelect.value = s.notify;
     if (typeof s.preNotify === "boolean") preNotifyToggle.checked = s.preNotify;
     if (s.jitterPreset) jitterPresetSelect.value = s.jitterPreset;

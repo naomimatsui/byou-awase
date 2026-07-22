@@ -145,10 +145,8 @@ splashScreen.addEventListener("transitionend", () => {
 const PRESETS = {
   sleep20: { mode: "normal", notify: "vibrateOnly", preNotify: false, jitter: "just", useSleepSeconds: true, sleepMode: true },
   call: { mode: "call", notify: "soundVibrate", preNotify: true, jitter: "just" },
-  line: { mode: "line", notify: "soundVibrate", preNotify: true, jitter: "5" },
-  threads: { mode: "threads", notify: "soundVibrate", preNotify: true, jitter: "5" },
+  post: { mode: "post", notify: "soundVibrate", preNotify: true, jitter: "5" },
   ticket: { mode: "ticket", notify: "soundVibrate", preNotify: true, jitter: "just" },
-  live: { mode: "live", notify: "soundVibrate", preNotify: true, jitter: "just" }
 };
 
 presetButtons.forEach((btn) => {
@@ -438,10 +436,8 @@ function getZeroText(mode) {
 
 function getModeIcon(mode) {
   if (mode === "call") return "📞";
-  if (mode === "line") return "💬";
-  if (mode === "threads") return "🧵";
+    if (mode === "post") return "💬";
   if (mode === "ticket") return "🎫";
-  if (mode === "live") return "🎥";
   return "⏱";
 }
 
