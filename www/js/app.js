@@ -416,7 +416,28 @@ function stopAlarmSound() {
   }
 }
 
+/* ネイティブ（iOS/Android）ではCapacitor Hapticsで実際に振動させる。
+   iOSのWKWebViewは navigator.vibrate 非対応のため、これが無いとバイブが無反応になる。
+   Web（ブラウザ）では従来どおり navigator.vibrate にフォールバック。 */
+let _haptics = null;
+function getHaptics() {
+  if (_haptics) return _haptics;
+  const C = window.Capacitor;
+  if (C && typeof C.isNativePlatform === "function" && C.isNativePlatform()) {
+    if (typeof C.registerPlugin === "function") {
+      try { _haptics = C.registerPlugin("Haptics"); } catch (e) {}
+    }
+    if (!_haptics && C.Plugins && C.Plugins.Haptics) _haptics = C.Plugins.Haptics;
+  }
+  return _haptics || null;
+}
+
 function vibrateIfSupported(pattern) {
+  const duration = Array.isArray(pattern) ? pattern[0] : pattern;
+  const H = getHaptics();
+  if (H) {
+    try { H.vibrate({ duration: duration }); return; } catch (e) {}
+  }
   if ("vibrate" in navigator) {
     navigator.vibrate(pattern);
   }

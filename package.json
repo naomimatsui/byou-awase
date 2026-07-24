@@ -10,7 +10,8 @@
     "assets": "npx @capacitor/assets generate"
   },
   "dependencies": {
-    "@capacitor/core": "^6.0.0"
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/haptics": "^6.0.0"
   },
   "devDependencies": {
     "@capacitor/android": "^6.0.0",
